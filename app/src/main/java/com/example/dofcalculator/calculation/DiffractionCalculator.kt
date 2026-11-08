@@ -6,7 +6,6 @@ import com.example.dofcalculator.model.*
 object DiffractionCalculator {
     const val WAVELENGTH_MM = 0.00055
     const val AIRY_DIAMETER_FACTOR = 2.44
-    const val PUPIL_MAGNIFICATION = 1.0
     // App heuristics, not universal optical sharpness standards.
     const val POSSIBLE_THRESHOLD = 0.7
     const val NOTICEABLE_THRESHOLD = 1.0
@@ -16,13 +15,8 @@ object DiffractionCalculator {
         return value
     }
 
-    fun effectiveAperture(aperture: Double, magnification: Double): Double {
-        require(magnification.isFinite() && magnification >= 0.0)
-        return positive(positive(aperture) * (1.0 + magnification / PUPIL_MAGNIFICATION))
-    }
-
-    fun airyDiameterMm(effectiveAperture: Double): Double =
-        positive(AIRY_DIAMETER_FACTOR * WAVELENGTH_MM * positive(effectiveAperture))
+    fun airyDiameterMm(aperture: Double): Double =
+        positive(AIRY_DIAMETER_FACTOR * WAVELENGTH_MM * positive(aperture))
 
     fun level(ratio: Double): DiffractionLevel {
         require(ratio.isFinite() && ratio >= 0.0)
@@ -33,14 +27,10 @@ object DiffractionCalculator {
         }
     }
 
-    fun calculate(aperture: Double, effectiveCoCmm: Double,
-                  magnification: MagnificationEstimate): DiffractionResult {
-        // Unknown magnification allows a clearly labelled uncorrected baseline only.
-        val effective = effectiveAperture(aperture, magnification.value ?: 0.0)
-        val airy = airyDiameterMm(effective)
+    fun calculate(aperture: Double, effectiveCoCmm: Double): DiffractionResult {
+        val airy = airyDiameterMm(aperture)
         val ratio = airy / positive(effectiveCoCmm)
         require(ratio.isFinite() && ratio >= 0.0)
-        return DiffractionResult(aperture, effective, airy, effectiveCoCmm, ratio,
-            level(ratio), magnification)
+        return DiffractionResult(aperture, airy, effectiveCoCmm, ratio, level(ratio))
     }
 }

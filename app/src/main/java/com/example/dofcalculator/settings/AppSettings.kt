@@ -29,7 +29,6 @@ data class CalculatorSettings(
     val apertureText: String = "8",
     val focusDistanceText: String = "5",
     val focusAtInfinity: Boolean = false,
-    val focusMagnification: Double? = null,
 )
 
 data class AppSettings(
@@ -41,7 +40,6 @@ data class AppSettings(
     val apertureIncrements: ApertureIncrements = ApertureIncrements.FullStop,
     val sharpness: SharpnessSettings = SharpnessSettings(),
     val diffraction: DiffractionSettings = DiffractionSettings(),
-    val macroWarningsEnabled: Boolean = true,
     val sharpnessMigrated: Boolean = false,
     // Archived raw calculator CoC, kept for explicit import without replacing an active criterion.
     val legacyCoCForMigration: String? = null,
@@ -63,6 +61,4 @@ interface AppSettingsRepository {
     suspend fun setApertureIncrements(increments: ApertureIncrements)
 
     suspend fun saveDiffractionSettings(settings: DiffractionSettings)
-
-    suspend fun setMacroWarningsEnabled(enabled: Boolean)
 }

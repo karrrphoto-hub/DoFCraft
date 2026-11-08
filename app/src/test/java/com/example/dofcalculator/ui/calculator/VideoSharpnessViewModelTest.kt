@@ -37,7 +37,7 @@ class VideoSharpnessViewModelTest {
         }
     }
 
-    @Test fun `video edits preserve camera real optics infinity and manual macro settings`() {
+    @Test fun `video edits preserve camera real optics infinity and warning settings`() {
         val vm = video()
         vm.onFocalLengthChanged("100")
         vm.onApertureChanged("11")
@@ -56,18 +56,14 @@ class VideoSharpnessViewModelTest {
         vm.onVideoResolutionSelected(VideoResolution.UHD_8K)
         assertSame(CalculatedDistance.Infinity, vm.uiState.focusDistance)
         assertEquals(1.0, vm.uiState.distanceSliderPosition, 0.0)
-        vm.onOpenMacroFocus()
-        vm.onMacroFocusChanged("2:1")
-        vm.onMacroFieldChanged(MacroInputField.DISTANCE, "0.45")
-        vm.onApplyMacroFocus()
+        vm.onFocusDistanceChanged("0.45")
         val distance = vm.uiState.focusDistance
-        val macro = vm.uiState.diffractionSettings
+        val diffraction = vm.uiState.diffractionSettings
         vm.onVideoResolutionSelected(VideoResolution.UHD_4K)
         vm.onVideoFieldChanged(VideoField.CROP, "2")
         assertEquals(distance, vm.uiState.focusDistance)
-        assertEquals(2.0, vm.uiState.focusMagnification!!, 0.0)
-        assertEquals(macro, vm.uiState.diffractionSettings)
-        assertEquals(2.0, vm.uiState.diffractionResult!!.magnification.value!!, 0.0)
+        assertEquals(diffraction, vm.uiState.diffractionSettings)
+        assertEquals(.014762, vm.uiState.diffractionResult!!.airyDiameterMm, 1e-15)
     }
 
     @Test fun `camera changes recalculate auto area and incompatible manual dimensions require correction`() {

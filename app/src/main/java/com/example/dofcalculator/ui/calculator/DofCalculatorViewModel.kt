@@ -6,12 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.dofcalculator.calculation.DiffractionCalculator
-import com.example.dofcalculator.calculation.MagnificationEstimator
-import com.example.dofcalculator.model.MagnificationMode
 import com.example.dofcalculator.model.*
-import com.example.dofcalculator.calculation.ThinLensEquivalentCalculator
-import com.example.dofcalculator.calculation.ManualMagnificationValidator
-import com.example.dofcalculator.model.MagnificationEstimate
 import com.example.dofcalculator.settings.DiffractionSettings
 import com.example.dofcalculator.calculation.DepthOfFieldCalculator
 import com.example.dofcalculator.calculation.FocusDistanceScale
@@ -403,109 +398,8 @@ class DofCalculatorViewModel internal constructor(
         uiState = uiState.copy(isFocusDistanceVisible = false)
     }
 
-    fun onOpenMacroFocus() {
-        uiState = uiState.copy(isFocusDistanceVisible = false, isMacroFocusVisible = true,
-            isMagnificationSettingsVisible = true, isDiffractionInfoVisible = false,
-            macroForm = newMacroForm())
-        uiState = refreshMacroForm(uiState)
-    }
-
-    fun onClearMacroFocus() = onUseAutoMagnification()
-    fun onCloseMacroFocus() = onCloseMagnificationSettings()
-    fun onMacroFocusChanged(text: String) = onManualMagnificationChanged(text)
-    fun onApplyMacroFocus() = onApplyMacroSettings()
-
     fun onOpenDiffractionInfo() { uiState = uiState.copy(isDiffractionInfoVisible = true) }
     fun onCloseDiffractionInfo() { uiState = uiState.copy(isDiffractionInfoVisible = false) }
-
-    fun onOpenMagnificationSettings() {
-        uiState = uiState.copy(isMagnificationSettingsVisible = true, isMacroFocusVisible = false,
-            isDiffractionInfoVisible = false, isSettingsVisible = false,
-            macroForm = newMacroForm())
-        uiState = refreshMacroForm(uiState)
-    }
-
-    fun onCloseMagnificationSettings() {
-        uiState = uiState.copy(isMagnificationSettingsVisible = false,
-            isFocusDistanceVisible = uiState.isMacroFocusVisible, isMacroFocusVisible = false)
-    }
-
-    private fun plain(value: Double): String =
-        java.math.BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
-
-    private fun newMacroForm(): MacroFormUiState {
-        val m = uiState.diffractionSettings.manualMagnification
-        val a = if (m < 1.0 && (1.0 / m).isFinite()) "1" else plain(m)
-        val b = if (m < 1.0 && (1.0 / m).isFinite()) plain(1.0 / m) else "1"
-        // Require an explicit measured distance for each new editing session.
-        return MacroFormUiState(a, b)
-    }
-
-    private fun refreshMacroForm(state: DofCalculatorUiState): DofCalculatorUiState {
-        val form = state.macroForm
-        val validation = ThinLensEquivalentCalculator.validate(form.numerator, form.denominator,
-            form.distanceMeters, state.focalLengthText.toPositiveDecimalOrNull(),
-            state.apertureText.toPositiveDecimalOrNull())
-        return state.copy(macroForm = form.copy(validation = validation,
-            pendingConfirmation = form.pendingConfirmation.takeIf { it == validation.preview }))
-    }
-
-    /** Field edits are unapplied drafts; they never alter the main calculator. */
-    fun onMacroFieldChanged(field: MacroInputField, text: String) {
-        val form = uiState.macroForm.copy(pendingConfirmation = null)
-        uiState = refreshMacroForm(uiState.copy(macroForm = when (field) {
-            MacroInputField.NUMERATOR -> form.copy(numerator = text)
-            MacroInputField.DENOMINATOR -> form.copy(denominator = text)
-            MacroInputField.DISTANCE -> form.copy(distanceMeters = text)
-        }))
-    }
-
-    fun onManualMagnificationChanged(text: String) {
-        val parts = text.split(':')
-        uiState = refreshMacroForm(uiState.copy(macroForm = uiState.macroForm.copy(
-            numerator = parts.first(), denominator = if (parts.size == 1) "1"
-                else if (parts.size == 2) parts[1] else "", pendingConfirmation = null)))
-    }
-
-    fun onRestoreManualMacro() {
-        val saved = uiState.diffractionSettings.manualDistanceMeters ?: return
-        uiState = refreshMacroForm(uiState.copy(macroForm = newMacroForm()
-            .copy(distanceMeters = plain(saved))))
-    }
-
-    fun onApplyMacroSettings() = applyMacroSettings(confirmUnusual = false)
-    fun onConfirmMacroSettings() = applyMacroSettings(confirmUnusual = true)
-    fun onCancelMacroConfirmation() {
-        uiState = uiState.copy(macroForm = uiState.macroForm.copy(pendingConfirmation = null))
-    }
-
-    private fun applyMacroSettings(confirmUnusual: Boolean) {
-        uiState = refreshMacroForm(uiState)
-        val form = uiState.macroForm
-        val preview = form.validation.preview ?: return
-        if (preview.unusual && (!confirmUnusual || form.pendingConfirmation != preview)) {
-            uiState = uiState.copy(macroForm = form.copy(pendingConfirmation = preview))
-            return
-        }
-        val settings = uiState.diffractionSettings.copy(
-            magnificationMode = MagnificationMode.MANUAL, manualMagnification = preview.magnification,
-            manualDistanceMeters = preview.distanceMeters, manualFocalLengthMm = preview.nominalFocalLengthMm,
-            manualConfirmed = true)
-        uiState = recalculate(uiState.copy(diffractionSettings = settings,
-            calculatorMode = CalculatorMode.DepthOfField, focusAtInfinity = false,
-            focusDistanceText = plain(preview.distanceMeters), focusInputDraft = null))
-        launchSettingsOperation { appSettingsRepository.saveDiffractionSettings(settings) }
-        onCloseMagnificationSettings()
-    }
-
-    fun onUseAutoMagnification() {
-        updateDiffractionSettings(uiState.diffractionSettings.copy(magnificationMode = MagnificationMode.AUTO))
-    }
-
-    fun onMacroWarningsEnabled(enabled: Boolean) {
-        uiState = uiState.copy(macroWarningsEnabled = enabled)
-        launchSettingsOperation { appSettingsRepository.setMacroWarningsEnabled(enabled) }
-    }
 
     fun onDiffractionWarningsEnabled(enabled: Boolean) {
         updateDiffractionSettings(uiState.diffractionSettings.copy(warningsEnabled = enabled))
@@ -519,34 +413,11 @@ class DofCalculatorViewModel internal constructor(
 
     /** Pure one-way branch: nominal focal length and geometric DOF remain untouched. */
     private fun withDiffraction(state: DofCalculatorUiState): DofCalculatorUiState {
-        val f = state.focalLengthText.toPositiveDecimalOrNull()
-        val n = state.apertureText.toPositiveDecimalOrNull()
-        val distance = state.focusDistance.takeUnless {
-            state.focusDistanceHasError || (state.calculatorMode == CalculatorMode.Hyperfocal && state.result == null)
-        }
-        val assessment = ManualMagnificationValidator.assess(state.diffractionSettings, distance, f)
-        val settings = if (state.diffractionSettings.manualConfirmed &&
-            assessment.status != ManualMagnificationStatus.VALID)
-            state.diffractionSettings.copy(manualConfirmed = false) else state.diffractionSettings
-        val estimate = if (f == null || distance == null) MagnificationEstimate(null,
-            suspension = ManualMagnificationSuspension.NEEDS_CONFIRMATION.takeIf {
-                settings.magnificationMode == MagnificationMode.MANUAL })
-            else MagnificationEstimator.resolve(f, distance, settings,
-                state.calculatorMode == CalculatorMode.Hyperfocal)
-        val result = if (n == null || state.effectiveCoCMm == null) null else runCatching {
-            DiffractionCalculator.calculate(n, state.effectiveCoCMm, estimate)
+        val aperture = state.apertureText.toPositiveDecimalOrNull()
+        val result = if (aperture == null || state.effectiveCoCMm == null) null else runCatching {
+            DiffractionCalculator.calculate(aperture, state.effectiveCoCMm)
         }.getOrNull()
-        val macroInput = MacroDetectionInput(f, distance, estimate,
-            ordinaryDof = state.calculatorMode == CalculatorMode.DepthOfField)
-        // Keep the derived key and result in the same immutable snapshot. A delayed settings
-        // emission must not replace the memo for a newer distance edit in progress.
-        val macroDetection = if (macroInput == state.macroDetectionInput) state.macroDetection
-            else if (!macroInput.ordinaryDof) MacroDetectionState.None
-            else com.example.dofcalculator.calculation.MacroWarningEvaluator.evaluate(f, distance, estimate)
-        val updated = state.copy(diffractionSettings = settings, diffractionResult = result,
-            magnificationEstimate = estimate, manualMagnificationAssessment = assessment,
-            macroDetection = macroDetection, macroDetectionInput = macroInput)
-        return if (state.isMagnificationSettingsVisible) refreshMacroForm(updated) else updated
+        return state.copy(diffractionResult = result)
     }
 
     fun onOpenSettings() {
@@ -717,7 +588,6 @@ class DofCalculatorViewModel internal constructor(
                         ?.trim()?.replace(',', '.')?.toDoubleOrNull()
                         ?.takeIf { it.isFinite() && it > 0.0 },
                     diffractionSettings = settings.diffraction,
-                    macroWarningsEnabled = settings.macroWarningsEnabled,
                     apertureIncrements = settings.apertureIncrements,
                     calculatorMode = calculator.mode,
                     selectedFrameFormat = calculator.frameFormat,
@@ -739,7 +609,6 @@ class DofCalculatorViewModel internal constructor(
             // Diffraction inputs, like sharpness inputs, are restored once. A delayed
             // DataStore snapshot must not replace a newer manual edit in progress.
             val updated = uiState.copy(
-                macroWarningsEnabled = settings.macroWarningsEnabled,
                 apertureIncrements = settings.apertureIncrements,
                 distanceUnit = settings.distanceUnit,
                 distanceRounding = settings.distanceRounding,
@@ -852,18 +721,12 @@ class DofCalculatorViewModel internal constructor(
     private fun recalculate(
         input: DofCalculatorUiState,
     ): DofCalculatorUiState {
-        // Hyperfocal switches manual Macro off; leaving it must not resurrect that mode.
-        // Keep the saved pair available for an explicit later Apply, including after a restart.
-        val normalized = if (input.calculatorMode == CalculatorMode.Hyperfocal &&
-            input.diffractionSettings.magnificationMode == MagnificationMode.MANUAL)
-            input.copy(diffractionSettings = input.diffractionSettings.copy(magnificationMode = MagnificationMode.AUTO))
-        else input
-        val kit = normalized.cameraLensKit
-        val candidate = normalized.copy(
+        val kit = input.cameraLensKit
+        val candidate = input.copy(
             focalLengthPresets = com.example.dofcalculator.calculation.FocalLengthPresetsGenerator.generate(
                 kit.lenses, CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble), kit.showAllFocalLengths),
             aperturePresets = com.example.dofcalculator.calculation.AperturePresetsGenerator.generate(
-                kit.lenses, normalized.apertureIncrements.apertures, kit.showAllApertures),
+                kit.lenses, input.apertureIncrements.apertures, kit.showAllApertures),
         )
         if (candidate.focusDistanceText.toPositiveDecimalOrNull() != null) {
             lastValidFocusDistanceText = candidate.focusDistanceText
@@ -946,16 +809,11 @@ class DofCalculatorViewModel internal constructor(
                 scale?.positionOf(it)
             } ?: 0.0)
         val evaluated = withDiffraction(calculated)
-        if (settingsRestored && evaluated.diffractionSettings != input.diffractionSettings) {
-            launchSettingsOperation { appSettingsRepository.saveDiffractionSettings(evaluated.diffractionSettings) }
-        }
-        // A measured Manual distance can be shorter than the nominal-lens DOF model permits.
-        // Keep genuine optical inputs even when that geometric result is unavailable.
-        val measuredInputs = evaluated.diffractionSettings.manualDistanceMeters != null &&
-            candidate.focalLengthText.toPositiveDecimalOrNull() != null &&
+        // Retain valid physical inputs even when geometric DOF is unavailable at a short distance.
+        val validInputs = candidate.focalLengthText.toPositiveDecimalOrNull() != null &&
             candidate.apertureText.toPositiveDecimalOrNull() != null &&
             (candidate.focusAtInfinity || candidate.focusDistanceText.toPositiveDecimalOrNull() != null)
-        if (settingsRestored && sharpnessMigrationComplete && (evaluated.result != null || measuredInputs)) {
+        if (settingsRestored && sharpnessMigrationComplete && (evaluated.result != null || validInputs)) {
             persistCalculatorSettings(evaluated)
         }
         return evaluated

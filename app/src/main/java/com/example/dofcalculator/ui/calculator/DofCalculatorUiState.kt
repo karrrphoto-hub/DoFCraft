@@ -18,10 +18,6 @@ data class DofCalculatorUiState(
     val focusDistanceText: String = "5",
     val focusInputDraft: String? = null,
     val isFocusDistanceVisible: Boolean = false,
-    val isMacroFocusVisible: Boolean = false,
-    val macroForm: MacroFormUiState = MacroFormUiState(),
-    val manualMagnificationAssessment: com.example.dofcalculator.model.ManualMagnificationAssessment =
-        com.example.dofcalculator.model.ManualMagnificationAssessment(),
     val distanceUnit: DistanceUnit = DistanceUnit.Meters,
     val distanceRounding: DistanceRounding = DistanceRounding.Three,
     val focusDistanceMeters: Double? = 5.0,
@@ -45,14 +41,7 @@ data class DofCalculatorUiState(
     val diffractionSettings: com.example.dofcalculator.settings.DiffractionSettings =
         com.example.dofcalculator.settings.DiffractionSettings(),
     val diffractionResult: com.example.dofcalculator.model.DiffractionResult? = null,
-    val magnificationEstimate: com.example.dofcalculator.model.MagnificationEstimate =
-        com.example.dofcalculator.model.MagnificationEstimate(null),
-    val macroDetection: com.example.dofcalculator.model.MacroDetectionState =
-        com.example.dofcalculator.model.MacroDetectionState.None,
-    val macroWarningsEnabled: Boolean = true,
-    val macroDetectionInput: com.example.dofcalculator.model.MacroDetectionInput? = null,
     val isDiffractionInfoVisible: Boolean = false,
-    val isMagnificationSettingsVisible: Boolean = false,
     val legacyCoCByCameraId: Map<String, Double> = emptyMap(),
     val legacyCalculatorCoCmm: Double? = null,
     val calculatorMode: CalculatorMode = CalculatorMode.DepthOfField,
@@ -78,34 +67,12 @@ data class DofCalculatorUiState(
     val presets: PresetManagerUiState = PresetManagerUiState(),
     val inputError: DofInputError? = null,
 ) {
-    val isMacroModeActive: Boolean get() = calculatorMode == CalculatorMode.DepthOfField &&
-        diffractionSettings.magnificationMode == com.example.dofcalculator.model.MagnificationMode.MANUAL
     val isFocusDistanceEditable: Boolean get() = calculatorMode == CalculatorMode.DepthOfField
-    val focusMagnification: Double? get() = diffractionSettings.manualMagnification.takeIf {
-        diffractionSettings.magnificationMode == com.example.dofcalculator.model.MagnificationMode.MANUAL &&
-            manualMagnificationAssessment.status == com.example.dofcalculator.model.ManualMagnificationStatus.VALID
-    }
-    val manualNeedsConfirmation: Boolean get() =
-        diffractionSettings.magnificationMode == com.example.dofcalculator.model.MagnificationMode.MANUAL &&
-            manualMagnificationAssessment.status in listOf(
-                com.example.dofcalculator.model.ManualMagnificationStatus.NEEDS_CONFIRMATION,
-                com.example.dofcalculator.model.ManualMagnificationStatus.INVALID)
-    val showManualMagnificationNotice: Boolean get() = isMacroModeActive && manualNeedsConfirmation
     val cameraLensKit: com.example.dofcalculator.model.CameraLensKit
         get() = presets.lensKitsByCameraId[presets.selectedCameraId]
             ?: com.example.dofcalculator.model.CameraLensKit()
     val showDiffractionWarning: Boolean get() = diffractionSettings.warningsEnabled &&
         diffractionResult?.level?.let { it != com.example.dofcalculator.model.DiffractionLevel.NONE } == true
-    val showMacroWarning: Boolean get() = macroWarningsEnabled &&
-        calculatorMode == CalculatorMode.DepthOfField && !isMacroModeActive && !focusAtInfinity &&
-        (macroDetection is com.example.dofcalculator.model.MacroDetectionState.MacroEstimated ||
-            macroDetection == com.example.dofcalculator.model.MacroDetectionState.MagnificationUnavailableAtCloseDistance)
-    val showMacroIndicator: Boolean get() = calculatorMode == CalculatorMode.DepthOfField &&
-        (magnificationEstimate.suspension != null ||
-            magnificationEstimate.source == com.example.dofcalculator.model.MagnificationMode.MANUAL ||
-            (magnificationEstimate.value ?: 0.0) >=
-                com.example.dofcalculator.calculation.MagnificationEstimator.MACRO_INDICATOR_THRESHOLD)
-
     /** Compare canonical metres, never the rounded text shown in the input. */
     val isFocusedAtHyperfocal: Boolean
         get() {

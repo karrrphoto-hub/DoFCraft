@@ -27,8 +27,7 @@ class VideoSettingsPersistenceTest {
             repo.setLanguage(AppLanguage.Russian)
             repo.saveCalculatorSettings(CalculatorSettings(focalLengthText = "85",
                 apertureText = "11", focusDistanceText = "7.25"))
-            repo.saveDiffractionSettings(DiffractionSettings(
-                magnificationMode = MagnificationMode.MANUAL, manualMagnification = 2.0))
+            repo.saveDiffractionSettings(DiffractionSettings(warningsEnabled = false))
             repo.saveSharpnessSettings(expected)
             job.cancelAndJoin()
             job = SupervisorJob()
@@ -38,7 +37,7 @@ class VideoSettingsPersistenceTest {
             assertEquals(AppLanguage.Russian, restored.language)
             assertEquals("85", restored.calculator.focalLengthText)
             assertEquals("7.25", restored.calculator.focusDistanceText)
-            assertEquals(2.0, restored.diffraction.manualMagnification, 0.0)
+            assertFalse(restored.diffraction.warningsEnabled)
             for (mode in SharpnessCriterionMode.entries) {
                 repo.saveSharpnessSettings(expected.copy(mode = mode))
                 assertEquals(video, repo.settings.first().sharpness.video)

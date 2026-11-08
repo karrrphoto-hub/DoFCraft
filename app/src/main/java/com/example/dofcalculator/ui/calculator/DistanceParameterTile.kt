@@ -30,24 +30,17 @@ internal fun DistanceParameterTile(
     state: DofCalculatorUiState,
     onDistance: () -> Unit,
     onMode: (CalculatorMode) -> Unit,
-    onMacro: () -> Unit,
-    onClearMacro: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val hyperfocal = state.calculatorMode == CalculatorMode.Hyperfocal
-    val macro = state.isMacroModeActive
     val hLabel = stringResource(R.string.focus_hyperfocal_button)
-    val mLabel = stringResource(R.string.focus_macro_button)
     val textMeasurer = rememberTextMeasurer()
     val labelStyle = MaterialTheme.typography.labelLarge
     val density = LocalDensity.current
     val buttonsWidth = with(density) {
-        maxOf(64.dp, textMeasurer.measure(hLabel, labelStyle, softWrap = false).size.width.toDp() + 24.dp) +
-            // Leave room for pixel rounding when the button group is measured at another density.
-            maxOf(64.dp, textMeasurer.measure(mLabel, labelStyle, softWrap = false).size.width.toDp() + 24.dp) + 12.dp
+        maxOf(64.dp, textMeasurer.measure(hLabel, labelStyle, softWrap = false).size.width.toDp() + 24.dp)
     }
     val onHyperfocal = { onMode(if (hyperfocal) CalculatorMode.DepthOfField else CalculatorMode.Hyperfocal) }
-    val onMacroClick = if (macro) onClearMacro else onMacro
     Card(
         modifier = modifier.fillMaxWidth(),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
@@ -58,12 +51,12 @@ internal fun DistanceParameterTile(
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically) {
                     DistanceSummary(state, onDistance, Modifier.weight(1f))
-                    FocusModeButtons(hyperfocal, macro, onHyperfocal, onMacroClick, wrap = false)
+                    HyperfocalButton(hyperfocal, onHyperfocal)
                 }
             } else {
                 Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     DistanceSummary(state, onDistance, Modifier.fillMaxWidth())
-                    FocusModeButtons(hyperfocal, macro, onHyperfocal, onMacroClick, Modifier.fillMaxWidth())
+                    HyperfocalButton(hyperfocal, onHyperfocal)
                 }
             }
         }
@@ -82,60 +75,31 @@ private fun DistanceSummary(state: DofCalculatorUiState, onClick: () -> Unit, mo
             display.number(distance.meters), distanceUnitLabel(state.distanceUnit))
         null -> "—"
     }
-    val supporting = when {
-        hyperfocal -> null
-        state.focusMagnification != null -> stringResource(R.string.focus_macro_active,
-            magnificationLabel(MagnificationEstimate(state.focusMagnification, MagnificationMode.MANUAL)))
-        else -> null
-    }
     Column(modifier.heightIn(min = 64.dp).clickable(role = Role.Button, onClick = onClick).padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically)) {
         Text(stringResource(R.string.distance_parameter), style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(value, style = if (hyperfocal) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold, maxLines = if (hyperfocal) 3 else 2, overflow = TextOverflow.Ellipsis)
-        supporting?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
+
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun FocusModeButtons(
-    hyperfocal: Boolean, macro: Boolean, onHyperfocal: () -> Unit, onMacro: () -> Unit,
-    modifier: Modifier = Modifier,
-    wrap: Boolean = true,
-) {
+private fun HyperfocalButton(hyperfocal: Boolean, onHyperfocal: () -> Unit) {
     val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
     val activeColors = ButtonDefaults.filledTonalButtonColors(
         containerColor = if (dark) FocusSelectedDark else FocusSelectedLight,
         contentColor = if (dark) OnFocusSelectedDark else OnFocusSelectedLight)
     val description = stringResource(R.string.focus_hyperfocal_description)
-    val buttons: @Composable () -> Unit = {
-        FilledTonalButton(onClick = onHyperfocal,
-            modifier = Modifier.widthIn(min = 64.dp).heightIn(min = 48.dp).semantics {
-                selected = hyperfocal
-                contentDescription = description
-            },
-            colors = if (hyperfocal) activeColors else ButtonDefaults.filledTonalButtonColors(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-            Text(stringResource(R.string.focus_hyperfocal_button), style = MaterialTheme.typography.labelLarge)
-        }
-        FilledTonalButton(onClick = onMacro,
-            modifier = Modifier.widthIn(min = 64.dp).heightIn(min = 48.dp).semantics { selected = macro },
-            colors = if (macro) activeColors else ButtonDefaults.filledTonalButtonColors(),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
-            Text(stringResource(R.string.focus_macro_button), style = MaterialTheme.typography.labelLarge)
-        }
-    }
-    if (wrap) {
-        FlowRow(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)) { buttons() }
-    } else {
-        Row(modifier, horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically) { buttons() }
+    FilledTonalButton(onClick = onHyperfocal,
+        modifier = Modifier.widthIn(min = 64.dp).heightIn(min = 48.dp).semantics {
+            selected = hyperfocal
+            contentDescription = description
+        },
+        colors = if (hyperfocal) activeColors else ButtonDefaults.filledTonalButtonColors(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)) {
+        Text(stringResource(R.string.focus_hyperfocal_button), style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -148,10 +112,8 @@ private fun DistanceParameterTilePreview() {
     DOFCalculatorTheme(dynamicColor = false) {
         Surface {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                DistanceParameterTile(state, {}, {}, {}, {})
-                DistanceParameterTile(state.copy(calculatorMode = CalculatorMode.Hyperfocal), {}, {}, {}, {})
-                DistanceParameterTile(state.copy(diffractionSettings =
-                    DiffractionSettings(magnificationMode = MagnificationMode.MANUAL)), {}, {}, {}, {})
+                DistanceParameterTile(state, {}, {})
+                DistanceParameterTile(state.copy(calculatorMode = CalculatorMode.Hyperfocal), {}, {})
             }
         }
     }

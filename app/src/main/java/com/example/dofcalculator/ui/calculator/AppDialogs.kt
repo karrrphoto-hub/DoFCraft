@@ -61,8 +61,6 @@ internal fun AppDialogs(
     onDismissStorageError: () -> Unit,
     onApertureIncrementsSelected: (ApertureIncrements) -> Unit = {},
     onDiffractionWarningsEnabled: (Boolean) -> Unit = {},
-    onMacroWarningsEnabled: (Boolean) -> Unit = {},
-    onOpenMagnificationSettings: () -> Unit = {},
 ) {
     key(uiState.language) {
         when {
@@ -70,11 +68,8 @@ internal fun AppDialogs(
                 onDismiss = onDismissStorageError,
             )
             uiState.isSettingsVisible -> SettingsDialog(
-                macroWarningsEnabled = uiState.macroWarningsEnabled,
-                onMacroWarningsEnabled = onMacroWarningsEnabled,
                 diffractionWarningsEnabled = uiState.diffractionSettings.warningsEnabled,
                 onDiffractionWarningsEnabled = onDiffractionWarningsEnabled,
-                onOpenMagnificationSettings = onOpenMagnificationSettings,
                 selectedThemeMode = uiState.themeMode,
                 selectedLanguage = uiState.language,
                 onThemeModeSelected = onThemeModeSelected,
@@ -98,11 +93,8 @@ internal fun AppDialogs(
 
 @Composable
 private fun SettingsDialog(
-    macroWarningsEnabled: Boolean,
-    onMacroWarningsEnabled: (Boolean) -> Unit,
     diffractionWarningsEnabled: Boolean,
     onDiffractionWarningsEnabled: (Boolean) -> Unit,
-    onOpenMagnificationSettings: () -> Unit,
     selectedThemeMode: ThemeMode,
     selectedLanguage: AppLanguage,
     selectedUnit: DistanceUnit,
@@ -198,22 +190,6 @@ private fun SettingsDialog(
                 ) {
                     Text(stringResource(R.string.diffraction_warnings), Modifier.weight(1f))
                     Switch(checked = diffractionWarningsEnabled, onCheckedChange = null)
-                }
-                SettingsSectionTitle(stringResource(R.string.macro_warning_settings_section),
-                    modifier = Modifier.padding(top = 12.dp))
-                Row(
-                    Modifier.fillMaxWidth().heightIn(min = 56.dp)
-                        .toggleable(value = macroWarningsEnabled, role = Role.Switch,
-                            onValueChange = onMacroWarningsEnabled),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(stringResource(R.string.macro_warning_enabled), Modifier.weight(1f))
-                    Switch(checked = macroWarningsEnabled, onCheckedChange = null)
-                }
-                TextButton(onClick = onOpenMagnificationSettings,
-                    modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                    Text(stringResource(R.string.magnification_refine))
                 }
 
             }

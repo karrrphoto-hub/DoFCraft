@@ -46,7 +46,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -91,15 +90,12 @@ internal fun CompactCalculatorContent(
     onOpenPresetManager: () -> Unit,
     onOpenSharpness: () -> Unit,
     onOpenDiffractionInfo: () -> Unit,
-    onOpenMagnificationSettings: () -> Unit,
-    onUseAutoMagnification: () -> Unit,
     onOpenCameraLenses: (String) -> Unit,
     onShowAllFocalLengths: (Boolean) -> Unit,
     onShowAllApertures: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var editorName by rememberSaveable { mutableStateOf<String?>(null) }
-    val focusManager = LocalFocusManager.current
     val selectedCamera = uiState.matchingCameraProfile()
 
     Box(
@@ -162,15 +158,8 @@ internal fun CompactCalculatorContent(
                         R.string.focal_length_value,
                         uiState.focalLengthText,
                     ),
-                    supportingValue = if (uiState.isMacroModeActive) stringResource(R.string.macro_mode_label) else null,
                     multiline = true,
-                    onClick = {
-                        if (uiState.isMacroModeActive) {
-                            editorName = null
-                            focusManager.clearFocus()
-                            onOpenMagnificationSettings()
-                        } else editorName = ParameterEditor.FocalLength.name
-                    },
+                    onClick = { editorName = ParameterEditor.FocalLength.name },
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                 )
                 ParameterTile(
@@ -189,19 +178,14 @@ internal fun CompactCalculatorContent(
             DiffractionWarning(
                 state = uiState,
                 onInformation = onOpenDiffractionInfo,
-                onMagnification = onOpenMagnificationSettings,
-                onUseAuto = onUseAutoMagnification,
             )
 
             DistanceParameterTile(
                 state = uiState,
                 onDistance = onOpenFocusDistance,
                 onMode = onCalculatorModeSelected,
-                onMacro = onOpenMagnificationSettings,
-                onClearMacro = onUseAutoMagnification,
             )
 
-            if (uiState.showMacroWarning) MacroWarningCard(uiState.macroDetection, onOpenMagnificationSettings)
 
             ResultsInfographic(
                 result = uiState.result,

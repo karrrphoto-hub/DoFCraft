@@ -18,7 +18,7 @@ internal fun FocusDistanceDialogs(
     onSlider: (Double) -> Unit,
     onStep: (Boolean) -> Unit,
 ) {
-    if (state.isFocusDistanceVisible && !state.isMagnificationSettingsVisible) {
+    if (state.isFocusDistanceVisible) {
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text(stringResource(R.string.focus_distance_title)) },

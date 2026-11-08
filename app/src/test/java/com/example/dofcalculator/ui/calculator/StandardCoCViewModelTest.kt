@@ -41,7 +41,7 @@ class StandardCoCViewModelTest {
         vm.onApertureChanged("8")
         vm.onFocusDistanceChanged("2.75")
         val firstDof = vm.uiState.result
-        val macro = vm.uiState.diffractionSettings
+        val diffraction = vm.uiState.diffractionSettings
         for ((w, h) in listOf(17.0 to 24.0, 24.0 to 36.0, 56.0 to 56.0, 24.0 to 65.0)) {
             vm.onEditCamera(half.id)
             vm.onCameraDimensionsChanged(true, w.toString())
@@ -54,7 +54,7 @@ class StandardCoCViewModelTest {
             assertEquals("100", vm.uiState.focalLengthText)
             assertEquals("8", vm.uiState.apertureText)
             assertEquals(2.75, vm.uiState.focusDistanceMeters!!, 0.0)
-            assertEquals(macro, vm.uiState.diffractionSettings)
+            assertEquals(diffraction, vm.uiState.diffractionSettings)
             assertEquals(half.id, vm.uiState.presets.selectedCameraId)
             assertEquals(.00876, vm.uiState.sharpness.customCoCmm, 0.0)
         }
@@ -77,15 +77,15 @@ class StandardCoCViewModelTest {
         assertEquals(StandardCoCSource.DIAGONAL_FALLBACK, vm.uiState.standardCoC!!.source)
     }
 
-    @Test fun `Infinity and saved manual parameters survive geometry changes`() = runBlocking {
+    @Test fun `Infinity and warning preferences survive geometry changes`() = runBlocking {
         val vm = viewModel()
         vm.onFocusAtInfinity()
-        val macro = vm.uiState.diffractionSettings
+        val diffraction = vm.uiState.diffractionSettings
         cameras.saveCamera(half.copy(widthMm = 24.0, heightMm = 36.0))
         assertConsumers(vm, .030)
         assertSame(CalculatedDistance.Infinity, vm.uiState.focusDistance)
         assertEquals(1.0, vm.uiState.distanceSliderPosition, 0.0)
-        assertEquals(macro, vm.uiState.diffractionSettings)
+        assertEquals(diffraction, vm.uiState.diffractionSettings)
         val restarted = viewModel()
         assertSame(CalculatedDistance.Infinity, restarted.uiState.focusDistance)
         assertEquals(SharpnessCriterionMode.STANDARD, restarted.uiState.sharpness.mode)
@@ -93,20 +93,13 @@ class StandardCoCViewModelTest {
         assertEquals(half.id, restarted.uiState.presets.selectedCameraId)
     }
 
-    @Test fun `confirmed manual magnification stays bound to the same optics when Standard CoC changes`() = runBlocking {
-        val manual = DiffractionSettings(magnificationMode = MagnificationMode.MANUAL,
-            manualMagnification = 1.0, manualDistanceMeters = .3,
-            manualFocalLengthMm = 100.0, manualConfirmed = true)
+    @Test fun `close distance and nominal diffraction stay unchanged when Standard CoC changes`() = runBlocking {
         val settings = InMemoryAppSettingsRepository(AppSettings(sharpnessMigrated = true,
-            diffraction = manual, calculator = CalculatorSettings(
-                focalLengthText = "100", apertureText = "8", focusDistanceText = "0.3")))
+            calculator = CalculatorSettings(focalLengthText = "100", apertureText = "8", focusDistanceText = "0.3")))
         val vm = DofCalculatorViewModel(cameras, settings, scope)
         cameras.saveCamera(half.copy(widthMm = 56.0, heightMm = 56.0))
         assertConsumers(vm, .05491251783869153)
-        assertEquals(manual, vm.uiState.diffractionSettings)
-        assertEquals(MagnificationMode.MANUAL, vm.uiState.magnificationEstimate.source)
-        assertEquals(1.0, vm.uiState.magnificationEstimate.value!!, 0.0)
-        assertEquals(.021472, vm.uiState.diffractionResult!!.airyDiameterMm, 1e-15)
+        assertEquals(.010736, vm.uiState.diffractionResult!!.airyDiameterMm, 1e-15)
         assertEquals(.3, vm.uiState.focusDistanceMeters!!, 0.0)
         assertEquals("100", vm.uiState.focalLengthText)
         assertEquals("8", vm.uiState.apertureText)

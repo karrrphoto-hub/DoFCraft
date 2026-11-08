@@ -90,11 +90,6 @@ class CameraLensesViewModelTest {
         vm.onFocalLengthChanged("100")
         vm.onApertureChanged("8")
         vm.onFocusDistanceChanged("0.3")
-        vm.onOpenMagnificationSettings()
-        vm.onMacroFieldChanged(MacroInputField.NUMERATOR, "1")
-        vm.onMacroFieldChanged(MacroInputField.DENOMINATOR, "1")
-        vm.onMacroFieldChanged(MacroInputField.DISTANCE, "0.3")
-        vm.onApplyMacroSettings()
         for (mode in SharpnessCriterionMode.entries) {
             vm.onSharpnessModeSelected(mode)
             val before = vm.uiState

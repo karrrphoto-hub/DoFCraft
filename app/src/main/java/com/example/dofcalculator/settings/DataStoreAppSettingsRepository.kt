@@ -35,21 +35,8 @@ class DataStoreAppSettingsRepository(
                     ?: defaults.apertureIncrements,
                 distanceUnit = preferences[DISTANCE_UNIT].toEnumOrNull<DistanceUnit>() ?: defaults.distanceUnit,
                 distanceRounding = preferences[DISTANCE_ROUNDING].toEnumOrNull<DistanceRounding>() ?: defaults.distanceRounding,
-                macroWarningsEnabled = preferences[MACRO_WARNINGS]?.toBooleanStrictOrNull() ?: true,
                 diffraction = DiffractionSettings(
                     warningsEnabled = preferences[DIFFRACTION_WARNINGS]?.toBooleanStrictOrNull() ?: true,
-                    magnificationMode = if (preferences[MANUAL_PAIR_VERSION] == null &&
-                        preferences[FOCUS_MAGNIFICATION].positiveOrNull() != null)
-                        com.example.dofcalculator.model.MagnificationMode.MANUAL
-                    else preferences[MAGNIFICATION_MODE]
-                        .toEnumOrNull<com.example.dofcalculator.model.MagnificationMode>()
-                        ?: com.example.dofcalculator.model.MagnificationMode.AUTO,
-                    manualMagnification = (if (preferences[MANUAL_PAIR_VERSION] == null)
-                        preferences[FOCUS_MAGNIFICATION].positiveOrNull() else null)
-                        ?: preferences[MANUAL_MAGNIFICATION].positiveOrNull() ?: 1.0,
-                    manualDistanceMeters = preferences[MANUAL_DISTANCE].positiveOrNull(),
-                    manualFocalLengthMm = preferences[MANUAL_FOCAL].positiveOrNull(),
-                    manualConfirmed = preferences[MANUAL_CONFIRMED] == "true",
                 ),
                 sharpness = SharpnessSettingsCodec.decode(preferences[SHARPNESS_V2] ?: preferences[SHARPNESS]),
                 sharpnessMigrated = preferences[SHARPNESS_V2] != null || preferences[SHARPNESS] != null,
@@ -71,8 +58,6 @@ class DataStoreAppSettingsRepository(
                     apertureText = preferences[APERTURE]
                         ?: defaults.calculator.apertureText,
                     focusAtInfinity = preferences[FOCUS_INFINITY] == "true",
-                    focusMagnification = preferences[FOCUS_MAGNIFICATION]?.toDoubleOrNull()
-                        ?.takeIf { it.isFinite() && it > 0.0 },
                     focusDistanceText = preferences[FOCUS_DISTANCE]
                         ?: defaults.calculator.focusDistanceText,
                 ),
@@ -82,22 +67,9 @@ class DataStoreAppSettingsRepository(
     override suspend fun saveDiffractionSettings(settings: DiffractionSettings) {
         dataStore.edit {
             it[DIFFRACTION_WARNINGS] = settings.warningsEnabled.toString()
-            it[MAGNIFICATION_MODE] = settings.magnificationMode.name
-            if (it[MANUAL_PAIR_VERSION] == null && it[LEGACY_MANUAL_ARCHIVE] == null) {
-                it[MANUAL_MAGNIFICATION]?.let { raw -> it[LEGACY_MANUAL_ARCHIVE] = raw }
-            }
-            it[MANUAL_MAGNIFICATION] = settings.manualMagnification.toString()
-            it[MANUAL_PAIR_VERSION] = "1"
-            settings.manualDistanceMeters?.let { value -> it[MANUAL_DISTANCE] = value.toString() }
-                ?: it.remove(MANUAL_DISTANCE)
-            settings.manualFocalLengthMm?.let { value -> it[MANUAL_FOCAL] = value.toString() }
-                ?: it.remove(MANUAL_FOCAL)
-            it[MANUAL_CONFIRMED] = settings.manualConfirmed.toString()
+            // Do not migrate, remove or overwrite any legacy magnification preferences.
+            // Preferences.edit changes only the ordinary warning flag above.
         }
-    }
-
-    override suspend fun setMacroWarningsEnabled(enabled: Boolean) {
-        dataStore.edit { it[MACRO_WARNINGS] = enabled.toString() }
     }
 
     override suspend fun setThemeMode(themeMode: ThemeMode) {
@@ -154,14 +126,14 @@ class DataStoreAppSettingsRepository(
         }
     }
 
-    private fun String?.positiveOrNull(): Double? =
-        this?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
-
     private inline fun <reified T : Enum<T>> String?.toEnumOrNull(): T? =
         this?.let { storedName ->
             enumValues<T>().firstOrNull { it.name == storedName }
         }
 
+    // Legacy key declarations remain for documentation and data compatibility.
+    // The old values are deliberately unused and survive every ordinary preferences edit.
+    @Suppress("unused")
     private companion object {
         val DIFFRACTION_WARNINGS = stringPreferencesKey("diffraction_warnings")
         val MACRO_WARNINGS = stringPreferencesKey("macro_photography_warning")
