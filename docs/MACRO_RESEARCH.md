@@ -15,6 +15,21 @@ operation report; none is assumed here.
 The implementation is an informational magnification/diffraction extension. It
 does **not** contain a separate, physically calibrated macro-DOF engine.
 
+## Archive provenance
+
+- Source branch: `main`.
+- Source commit: `ed8638ec7a0e2bb0f66eaebdd3a9b7dedfb38222`.
+- Archive branch: `archive/macro-prototype`.
+- Snapshot prepared: 2026-11-08.
+- The full committed project is preserved, including the macro implementation,
+  tests, resources and build configuration. No macro functionality was removed.
+- A scan of all 160 blobs in the source history found no potential credential
+  signatures or tracked signing material, local IDE settings or build artifacts.
+  This automated scan is a precaution, not a guarantee that arbitrary secrets can
+  always be recognized.
+- Remote upload and private visibility must be verified separately. This document
+  does not assert that publication has already succeeded.
+
 ## Project and reproducibility
 
 The snapshot is the existing single-module Kotlin Android project with Jetpack
