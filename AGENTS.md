@@ -92,6 +92,7 @@ Create packages when the first real class belongs in them; do not add placeholde
 - Before handing off code, run the narrowest relevant tests and `./gradlew :app:assembleDebug`.
 - Prefer an emulator for instrumented tests. Android Studio may clear app data on test devices: before using a physical phone, back up its app data and restore it after the run. Never run instrumented tests on a personal phone without that backup.
 - Never commit `local.properties`, build outputs, Gradle caches, IDE workspace state, credentials, signing material, or generated secrets.
+- Production APKs use the permanent local Release identity documented in `docs/RELEASE_SIGNING.md`; `scripts/sign_release_macos.py` signs the unsigned Gradle output using this app's macOS Keychain item. Never replace the key or use Android Debug signing for public releases. Keep source/history and the Macro archive private; publish only documentation/images and signed APK/checksum assets in the separate public DoF-Master repository.
 
 ## Change discipline
 

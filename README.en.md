@@ -10,9 +10,9 @@
 
   <p><a href="README.md">Русский</a> &nbsp;|&nbsp; English</p>
 
-  <p><a href="https://github.com/karrrphoto-hub/DOF-Calculator/releases/download/v1.0/DoF-Master-1.0.apk"><strong>Download APK — DoF Master 1.0</strong></a> &nbsp;·&nbsp; <a href="https://github.com/karrrphoto-hub/DOF-Calculator/releases/tag/v1.0">Release notes and SHA-256</a></p>
-  <p>Android 8.0+ &nbsp;·&nbsp; 14.1 MB &nbsp;·&nbsp; Debug APK</p>
-  <p>To download, sign in to GitHub with access to this private repository.</p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.apk"><strong>Download APK — DoF Master 1.0.1</strong></a> &nbsp;·&nbsp; <a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.1">Release notes and SHA-256</a></p>
+  <p>Android 8.0+ &nbsp;·&nbsp; 1.9 MB &nbsp;·&nbsp; Signed Release APK</p>
+  <p>Public download; no GitHub sign-in required. See <a href="docs/RELEASE_SIGNING.md">signing and Debug upgrade compatibility</a>.</p>
 </div>
 
 ---
