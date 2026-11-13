@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.example.dofcalculator.R
 import com.example.dofcalculator.model.CameraProfile
 import com.example.dofcalculator.model.FrameFormat
+import com.example.dofcalculator.model.Lens
 import java.util.Locale
 
 @Composable
@@ -50,7 +51,9 @@ internal fun PresetManagementDialogs(
     onSaveCamera: () -> Unit,
     onCancelCamera: () -> Unit,
     onDismissStorageError: () -> Unit,
-    onOpenLenses: (String) -> Unit = {},
+    onAddLens: () -> Unit = {},
+    onEditLens: (String) -> Unit = {},
+    onDeleteLens: (String) -> Unit = {},
 ) {
     when {
         state.storageError -> AlertDialog(
@@ -76,7 +79,9 @@ internal fun PresetManagementDialogs(
         state.cameraEditor != null -> CameraEditorDialog(
             state.cameraEditor, onCameraNameChanged, onCameraFrameFormatSelected,
             onCameraDimensionsChanged, onCustomFormatChanged,
-            onSaveCamera, onCancelCamera, onOpenLenses)
+            onSaveCamera, onCancelCamera,
+            state.lensKitsByCameraId[state.cameraEditor.cameraId]?.lenses.orEmpty(),
+            onAddLens, onEditLens, onDeleteLens)
         state.isManagerVisible -> {
             var query by rememberSaveable { mutableStateOf("") }
             val names = state.cameras.map { camera ->
@@ -118,9 +123,10 @@ internal fun PresetManagementDialogs(
                                                 color = MaterialTheme.colorScheme.onSurfaceVariant)
                                         }
                                     }
-                                    TextButton(onClick = { onOpenLenses(camera.id) },
-                                        modifier = Modifier.padding(start = 24.dp)) {
-                                        Text(stringResource(R.string.lenses_title))
+                                    val lenses = state.lensKitsByCameraId[camera.id]?.lenses.orEmpty()
+                                    if (lenses.isNotEmpty() || !camera.isBuiltIn) {
+                                        CameraLensDescriptions(lenses,
+                                            Modifier.fillMaxWidth().padding(start = 48.dp, bottom = 8.dp))
                                     }
                                     if (!camera.isBuiltIn) {
                                         FlowRow(
@@ -162,7 +168,10 @@ private fun CameraEditorDialog(
     onCustomFormat: (String) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit,
-    onOpenLenses: (String) -> Unit,
+    lenses: List<Lens>,
+    onAddLens: () -> Unit,
+    onEditLens: (String) -> Unit,
+    onDeleteLens: (String) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
@@ -173,9 +182,6 @@ private fun CameraEditorDialog(
                 modifier = Modifier.heightIn(max = 460.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                if (editor.cameraId != null) TextButton(onClick = { onOpenLenses(editor.cameraId) }) {
-                    Text(stringResource(R.string.lenses_title))
-                } else Text(stringResource(R.string.lens_save_camera_first), style = MaterialTheme.typography.bodySmall)
                 OutlinedTextField(value = editor.nameText, onValueChange = onName,
                     label = { Text(stringResource(R.string.camera_name)) },
                     isError = editor.nameHasError, modifier = Modifier.fillMaxWidth())
@@ -214,9 +220,55 @@ private fun CameraEditorDialog(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         modifier = Modifier.fillMaxWidth())
                 }
+                HorizontalDivider()
+                CameraLensesSection(lenses, canAdd = editor.cameraId != null,
+                    onAdd = onAddLens, onEdit = onEditLens, onDelete = onDeleteLens)
+                if (editor.cameraId == null)
+                    Text(stringResource(R.string.lens_save_camera_first), style = MaterialTheme.typography.bodySmall)
             }
         },
         confirmButton = { TextButton(onClick = onSave) { Text(stringResource(R.string.save)) } },
         dismissButton = { TextButton(onClick = onCancel) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Camera editor English", widthDp = 360, heightDp = 900, locale = "en")
+@androidx.compose.ui.tooling.preview.Preview(name = "Camera editor Russian large dark", widthDp = 320, heightDp = 1000,
+    locale = "ru", fontScale = 1.3f, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CameraEditorLensesPreview() {
+    com.example.dofcalculator.ui.theme.DOFCalculatorTheme(dynamicColor = false) {
+        CameraEditorDialog(
+            editor = CameraEditorUiState(cameraId = "preview", nameText = "Yashica Mat 124G",
+                frameFormat = FrameFormat.MediumFormat6x6),
+            onName = {}, onFormat = {}, onDimensions = { _, _ -> }, onCustomFormat = {},
+            onSave = {}, onCancel = {},
+            lenses = listOf(Lens.Prime("preview-lens", "Yashinon", 80.0, 3.5, 22.0)),
+            onAddLens = {}, onEditLens = {}, onDeleteLens = {},
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Camera picker English", widthDp = 360, heightDp = 900, locale = "en")
+@androidx.compose.ui.tooling.preview.Preview(name = "Camera picker Russian large dark", widthDp = 320, heightDp = 1000,
+    locale = "ru", fontScale = 1.3f, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun CameraPickerLensesPreview() {
+    val camera = CameraProfile("preview", "Pentax 17", FrameFormat.Custom,
+        customFormatName = "Half frame film", widthMm = 17.0, heightMm = 24.0)
+    val kit = com.example.dofcalculator.model.CameraLensKit(listOf(
+        Lens.Prime("prime", "HD Pentax", 25.0, 3.5),
+        Lens.Zoom("zoom", minFocalLengthMm = 24.0, maxFocalLengthMm = 120.0,
+            maxApertureAtMinFocal = 4.0, maxApertureAtMaxFocal = 4.0)))
+    com.example.dofcalculator.ui.theme.DOFCalculatorTheme(dynamicColor = false) {
+        PresetManagementDialogs(
+            state = PresetManagerUiState(cameras = listOf(camera), selectedCameraId = camera.id,
+                isManagerVisible = true, lensKitsByCameraId = mapOf(camera.id to kit)),
+            onCloseManager = {}, onSelectCamera = {}, onCustomFormatChanged = {},
+            onConfirmDelete = {}, onCancelDelete = {}, onCreateCamera = {}, onEditCamera = {},
+            onDeleteCamera = {}, onCameraNameChanged = {}, onCameraFrameFormatSelected = {},
+            onCameraDimensionsChanged = { _, _ -> }, onSaveCamera = {}, onCancelCamera = {},
+            onDismissStorageError = {},
+        )
+    }
 }

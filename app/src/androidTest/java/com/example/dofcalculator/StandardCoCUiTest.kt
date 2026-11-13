@@ -29,8 +29,8 @@ class StandardCoCUiTest {
         fun t(en: String, ru: String) = if (russian) ru else en
         fun text(value: String) = compose.onAllNodesWithText(value).onLast()
         val fallback = t(
-            "Standard CoC for this format is automatically calculated from the frame diagonal, using 36×24 mm with CoC 0.030 mm as reference",
-            "Стандартный CoC для этого формата рассчитан автоматически по диагонали кадра относительно формата 36×24 мм (CoC 0,030 мм)")
+            "The sharpness setting for this format is calculated automatically from the frame dimensions.\n\nThe acceptable blur — the Circle of Confusion (CoC) — is determined from the frame diagonal. The reference is the 36×24 mm format with a value of 0.030 mm.",
+            "Настройка резкости для этого формата рассчитана автоматически по размерам кадра.\n\nДопустимое размытие — кружок рассеяния (CoC, Circle of Confusion) — определяется по диагонали кадра. За основу взят формат 36×24 мм со значением 0,030 мм.")
         lateinit var vm: DofCalculatorViewModel
         compose.runOnUiThread {
             vm = DofCalculatorViewModel(InMemoryPresetRepository(PresetLibrary(
@@ -48,7 +48,7 @@ class StandardCoCUiTest {
                 }
             }
         }
-        text(t("CoC 0.02039 mm", "CoC 0,02039 мм")).assertIsDisplayed()
+        text(t("CoC 0.02039 mm", "CoC 0,02039 мм")).assertDoesNotExist()
         text(t("Sharpness Criterion", "Критерий резкости")).performClick()
         text(t("Calculated CoC: 0.02039 mm", "Рассчитанный CoC: 0,02039 мм")).assertIsDisplayed()
         text(fallback).performScrollTo().assertIsDisplayed()
@@ -62,7 +62,7 @@ class StandardCoCUiTest {
         compose.runOnIdle { vm.onSharpnessModeSelected(SharpnessCriterionMode.STANDARD) }
         text(fallback).performScrollTo().assertIsDisplayed()
         compose.runOnIdle { vm.onCloseSharpness() }
-        text(t("CoC 0.02039 mm", "CoC 0,02039 мм")).assertIsDisplayed()
+        text(t("CoC 0.02039 mm", "CoC 0,02039 мм")).assertDoesNotExist()
     }
 
     @Test fun englishFallbackAndCataloguePriority() = check(false)

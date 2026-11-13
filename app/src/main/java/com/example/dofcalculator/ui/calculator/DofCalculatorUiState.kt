@@ -18,6 +18,7 @@ data class DofCalculatorUiState(
     val focusDistanceText: String = "5",
     val focusInputDraft: String? = null,
     val isFocusDistanceVisible: Boolean = false,
+    val isExitHyperfocalConfirmationVisible: Boolean = false,
     val distanceUnit: DistanceUnit = DistanceUnit.Meters,
     val distanceRounding: DistanceRounding = DistanceRounding.Three,
     val focusDistanceMeters: Double? = 5.0,
@@ -42,6 +43,10 @@ data class DofCalculatorUiState(
         com.example.dofcalculator.settings.DiffractionSettings(),
     val diffractionResult: com.example.dofcalculator.model.DiffractionResult? = null,
     val isDiffractionInfoVisible: Boolean = false,
+    val closeFocusWarningsEnabled: Boolean = true,
+    val closeFocusWarning: com.example.dofcalculator.model.CloseFocusWarningState =
+        com.example.dofcalculator.model.CloseFocusWarningState.None,
+    val closeFocusInput: com.example.dofcalculator.model.CloseFocusInput? = null,
     val legacyCoCByCameraId: Map<String, Double> = emptyMap(),
     val legacyCalculatorCoCmm: Double? = null,
     val calculatorMode: CalculatorMode = CalculatorMode.DepthOfField,
@@ -73,6 +78,11 @@ data class DofCalculatorUiState(
             ?: com.example.dofcalculator.model.CameraLensKit()
     val showDiffractionWarning: Boolean get() = diffractionSettings.warningsEnabled &&
         diffractionResult?.level?.let { it != com.example.dofcalculator.model.DiffractionLevel.NONE } == true
+    val showCloseFocusWarning: Boolean get() = closeFocusWarningsEnabled &&
+        calculatorMode == CalculatorMode.DepthOfField && !focusAtInfinity &&
+        (closeFocusWarning is com.example.dofcalculator.model.CloseFocusWarningState.EstimatedMacro ||
+            closeFocusWarning == com.example.dofcalculator.model.CloseFocusWarningState.TooCloseToEstimate)
+
     /** Compare canonical metres, never the rounded text shown in the input. */
     val isFocusedAtHyperfocal: Boolean
         get() {

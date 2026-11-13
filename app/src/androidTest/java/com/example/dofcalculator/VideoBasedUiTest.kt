@@ -62,8 +62,8 @@ class VideoBasedUiTest {
         text(t("Manual Active Area", "Ручная область сенсора")).performScrollTo().performClick()
         text(t("Active width, mm", "Ширина активной области, мм"))
             .performScrollTo().performTextReplacement("40")
-        text(t("The active area exceeds the selected sensor. Correct its dimensions or use Auto.",
-            "Активная область выходит за размеры выбранного сенсора. Исправьте размеры или выберите Авто."))
+        text(t("The recording area is larger than the selected camera sensor. Check its width and height or switch to automatic area selection.",
+            "Указанная область записи больше матрицы выбранной камеры. Проверьте её ширину и высоту или переключитесь на автоматический выбор области."))
             .assertExists()
         compose.runOnIdle { assertNull(vm.uiState.result) }
         text(t("Use Auto area", "Использовать область Авто")).performScrollTo().performClick()
@@ -71,8 +71,8 @@ class VideoBasedUiTest {
         text(t("Video Resolution", "Разрешение видео")).performScrollTo().performClick()
         text(t("Custom — 3840×2160", "Свой формат — 3840×2160")).performScrollTo().performClick()
         text(t("Video width, px", "Ширина видео, пикс.")).performScrollTo().performTextReplacement("1920.5")
-        text(t("Enter a positive whole number of pixels (up to 2147483647).",
-            "Введите положительное целое число пикселей (не больше 2147483647).")).assertExists()
+        text(t("Enter a whole number of pixels, from 1 to 2147483647.",
+            "Введите число пикселей без дробной части — от 1 до 2147483647.")).assertExists()
         compose.runOnIdle { assertNull(vm.uiState.effectiveCoCMm) }
         text(t("Video width, px", "Ширина видео, пикс.")).performScrollTo().performTextReplacement("1920")
         text(t("Video height, px", "Высота видео, пикс.")).performScrollTo().performTextReplacement("1080")

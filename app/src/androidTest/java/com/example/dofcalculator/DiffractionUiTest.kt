@@ -25,7 +25,7 @@ class DiffractionUiTest {
     private fun check(russian: Boolean) {
         fun t(en: String, ru: String) = if (russian) ru else en
         vm.onFocalLengthChanged("100")
-        vm.onApertureChanged("16")
+        vm.onApertureChanged("22")
         vm.onFocusDistanceChanged("0.3")
         compose.setContent {
             AppLocale(if (russian) AppLanguage.Russian else AppLanguage.English) {
@@ -47,12 +47,26 @@ class DiffractionUiTest {
         }
         text("Macro").assertDoesNotExist()
         compose.onNodeWithTag("macro-warning-card").assertDoesNotExist()
-        text(t("Diffraction may affect detail", "Дифракция может влиять на детализацию"))
-            .performScrollTo().performClick()
-        text(t("Airy disk: 21.472 µm", "Диск Эйри: 21,472 мкм")).performScrollTo().assertIsDisplayed()
+        compose.onNodeWithTag("diffraction-warning").assertDoesNotExist()
+        compose.runOnIdle { vm.onApertureChanged("32") }
+        val possibleTitle = t("Possible Diffraction Impact", "Возможно влияние дифракции")
+        text(possibleTitle).performScrollTo().assertIsDisplayed()
         text(t(
-            "Diffraction is estimated for conventional photography. At high magnifications, the effective f-number may differ from the set aperture, so the estimate may be inaccurate.",
-            "Оценка дифракции рассчитана для обычной съёмки. При значительных масштабах изображения эффективное диафрагменное число может отличаться от установленного, поэтому оценка может быть неточной"))
+            "Fine details may become less sharp. This is the effect of diffraction: it becomes more noticeable as you stop down the aperture. A smaller aperture can still improve the overall impression of sharpness: greater depth of field may make the foreground and background look clearer.",
+            "Мелкие детали могут стать менее чёткими. Это влияние дифракции: оно тем заметнее, чем сильнее закрыта диафрагма. При этом закрытая диафрагма по-прежнему может повысить общую визуальную резкость изображения: передний план и фон могут стать чётче благодаря увеличению глубины резкости.")).assertExists()
+        compose.runOnIdle { vm.onApertureChanged("45") }
+        text(possibleTitle).assertDoesNotExist()
+        text(t("Noticeable Diffraction Impact", "Заметное влияние дифракции"))
+            .performScrollTo().assertIsDisplayed()
+        compose.onAllNodesWithTag("diffraction-warning").assertCountEquals(1)
+        text(t(
+            "Fine details may become noticeably less sharp because of diffraction. Stopping down further will strengthen this effect while also increasing depth of field. A clearer foreground and background may matter more than preserving the finest details.",
+            "Мелкие детали могут заметно терять чёткость из-за дифракции. Дальнейшее закрытие диафрагмы усилит этот эффект, но одновременно увеличит глубину резкости. Более чёткие передний план и фон могут быть важнее сохранения самых мелких деталей.")).assertExists()
+        text(t("Noticeable Diffraction Impact", "Заметное влияние дифракции")).performClick()
+        text(t("Airy disk: 60.39 µm", "Диск Эйри: 60,39 мкм")).performScrollTo().assertIsDisplayed()
+        text(t(
+            "At high magnifications, this estimate may be less accurate. In these conditions, the lens may behave as though the aperture were stopped down further. The app uses the f-number you entered and does not adjust it for magnification.",
+            "При съёмке с большим увеличением эта оценка может быть менее точной. В таких условиях объектив может вести себя так, будто диафрагма закрыта сильнее. Приложение использует диафрагменное число, которое вы указали, и не делает поправку на масштаб съёмки."))
             .performScrollTo().assertIsDisplayed()
         text(t("Close", "Закрыть")).performScrollTo().performClick()
         text(t("Settings", "Настройки")).performClick()
@@ -61,11 +75,11 @@ class DiffractionUiTest {
         text(t("Warn about diffraction", "Предупреждать о дифракции")).performScrollTo().performClick()
         compose.runOnIdle {
             assertFalse(vm.uiState.showDiffractionWarning)
-            assertEquals(.021472, vm.uiState.diffractionResult!!.airyDiameterMm, 1e-15)
+            assertEquals(.060390, vm.uiState.diffractionResult!!.airyDiameterMm, 1e-15)
             assertEquals(.3, vm.uiState.focusDistanceMeters!!, 0.0)
         }
         text(t("Close", "Закрыть")).performClick()
-        text(t("Diffraction may affect detail", "Дифракция может влиять на детализацию")).assertDoesNotExist()
+        compose.onNodeWithTag("diffraction-warning").assertDoesNotExist()
         compose.onNodeWithTag("macro-warning-card").assertDoesNotExist()
     }
 

@@ -47,6 +47,55 @@ class DiffractionViewModelTest {
         }
     }
 
+    @Test fun `aperture and effective Standard Pixel and Custom CoC update only the informational level`() {
+        val vm = DofCalculatorViewModel()
+        vm.onFocalLengthChanged("100")
+        vm.onFocusDistanceChanged("0.6")
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.STANDARD)
+        assertEquals(.030, vm.uiState.effectiveCoCMm!!, 0.0)
+        for ((aperture, expected) in listOf(
+            "8" to DiffractionLevel.NONE, "11" to DiffractionLevel.NONE,
+            "16" to DiffractionLevel.NONE, "22" to DiffractionLevel.NONE,
+            "32" to DiffractionLevel.POSSIBLE, "45" to DiffractionLevel.NOTICEABLE,
+        )) {
+            vm.onApertureChanged(aperture)
+            assertEquals(expected, vm.uiState.diffractionResult!!.level)
+            assertEquals(expected != DiffractionLevel.NONE, vm.uiState.showDiffractionWarning)
+            assertEquals(aperture, vm.uiState.apertureText)
+            val before = vm.uiState
+            vm.onDiffractionWarningsEnabled(false)
+            assertSame(before.result, vm.uiState.result)
+            assertSame(before.distanceScale, vm.uiState.distanceScale)
+            assertEquals(before.focusDistance, vm.uiState.focusDistance)
+            vm.onDiffractionWarningsEnabled(true)
+        }
+        vm.onApertureChanged("22")
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.PIXEL_BASED)
+        vm.onSharpnessFieldChanged(SharpnessField.MEGAPIXELS, "24")
+        vm.onSharpnessFieldChanged(SharpnessField.PIXEL_BLUR, "2")
+        assertEquals(.012, vm.uiState.effectiveCoCMm!!, 1e-15)
+        assertEquals(.012, vm.uiState.diffractionResult!!.effectiveCoCmm, 1e-15)
+        assertEquals(DiffractionLevel.NOTICEABLE, vm.uiState.diffractionResult!!.level)
+
+        vm.onCircleOfConfusionChanged("0.025")
+        assertEquals(SharpnessCriterionMode.CUSTOM, vm.uiState.sharpness.mode)
+        assertEquals(DiffractionLevel.POSSIBLE, vm.uiState.diffractionResult!!.level)
+        vm.onCircleOfConfusionChanged("0.013")
+        assertEquals(DiffractionLevel.NOTICEABLE, vm.uiState.diffractionResult!!.level)
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.STANDARD)
+        assertFalse(vm.uiState.showDiffractionWarning)
+        assertEquals(.6, vm.uiState.focusDistanceMeters!!, 0.0)
+        assertEquals("100", vm.uiState.focalLengthText)
+        assertEquals("22", vm.uiState.apertureText)
+        assertEquals(com.example.dofcalculator.calculation.DepthOfFieldCalculator.calculate(
+            DepthOfFieldInput(100.0, 22.0, .030, .6)), vm.uiState.result)
+        vm.onCalculatorModeSelected(CalculatorMode.Hyperfocal)
+        assertFalse(vm.uiState.showDiffractionWarning)
+        assertEquals(com.example.dofcalculator.calculation.DepthOfFieldCalculator
+            .calculateHyperfocalDistanceMeters(100.0, 22.0, .030),
+            vm.uiState.result!!.hyperfocalDistanceMeters, 0.0)
+    }
+
     @Test fun `short positive distance is retained across restart even without a geometric result`() {
         val preferences = InMemoryAppSettingsRepository(AppSettings(sharpnessMigrated = true))
         val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.SupervisorJob() + kotlinx.coroutines.Dispatchers.Unconfined)

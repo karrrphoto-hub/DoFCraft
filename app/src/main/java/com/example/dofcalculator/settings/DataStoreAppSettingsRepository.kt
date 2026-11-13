@@ -35,6 +35,8 @@ class DataStoreAppSettingsRepository(
                     ?: defaults.apertureIncrements,
                 distanceUnit = preferences[DISTANCE_UNIT].toEnumOrNull<DistanceUnit>() ?: defaults.distanceUnit,
                 distanceRounding = preferences[DISTANCE_ROUNDING].toEnumOrNull<DistanceRounding>() ?: defaults.distanceRounding,
+                closeFocusWarningsEnabled = preferences[CLOSE_FOCUS_WARNINGS]?.toBooleanStrictOrNull()
+                    ?: defaults.closeFocusWarningsEnabled,
                 diffraction = DiffractionSettings(
                     warningsEnabled = preferences[DIFFRACTION_WARNINGS]?.toBooleanStrictOrNull() ?: true,
                 ),
@@ -70,6 +72,10 @@ class DataStoreAppSettingsRepository(
             // Do not migrate, remove or overwrite any legacy magnification preferences.
             // Preferences.edit changes only the ordinary warning flag above.
         }
+    }
+
+    override suspend fun setCloseFocusWarningsEnabled(enabled: Boolean) {
+        dataStore.edit { it[CLOSE_FOCUS_WARNINGS] = enabled.toString() }
     }
 
     override suspend fun setThemeMode(themeMode: ThemeMode) {
@@ -135,6 +141,7 @@ class DataStoreAppSettingsRepository(
     // The old values are deliberately unused and survive every ordinary preferences edit.
     @Suppress("unused")
     private companion object {
+        val CLOSE_FOCUS_WARNINGS = stringPreferencesKey("close_focus_warning")
         val DIFFRACTION_WARNINGS = stringPreferencesKey("diffraction_warnings")
         val MACRO_WARNINGS = stringPreferencesKey("macro_photography_warning")
         val MAGNIFICATION_MODE = stringPreferencesKey("magnification_mode")

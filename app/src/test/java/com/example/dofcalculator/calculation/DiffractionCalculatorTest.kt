@@ -15,19 +15,48 @@ class DiffractionCalculatorTest {
         }
     }
 
-    @Test fun `warning levels retain the existing heuristic thresholds`() {
-        for ((n, coc, expected) in listOf(
-            Triple(8.0, .03, DiffractionLevel.NONE),
-            Triple(16.0, .03, DiffractionLevel.POSSIBLE),
-            Triple(32.0, .03, DiffractionLevel.NOTICEABLE),
-            Triple(8.0, .013, DiffractionLevel.POSSIBLE),
-            Triple(11.0, .013, DiffractionLevel.NOTICEABLE))) {
-            assertEquals(expected, DiffractionCalculator.calculate(n, coc).level)
+    @Test fun `full frame Standard uses the less alarming practical thresholds`() {
+        for ((aperture, expected) in listOf(
+            8.0 to DiffractionLevel.NONE,
+            11.0 to DiffractionLevel.NONE,
+            16.0 to DiffractionLevel.NONE,
+            22.0 to DiffractionLevel.NONE,
+            32.0 to DiffractionLevel.POSSIBLE,
+            45.0 to DiffractionLevel.NOTICEABLE,
+        )) {
+            val result = DiffractionCalculator.calculate(aperture, .030)
+            assertEquals(expected, result.level)
+            assertEquals(.001342 * aperture, result.airyDiameterMm, 1e-15)
+            assertEquals(result.airyDiameterMm / .030, result.ratio, 0.0)
         }
-        assertEquals(DiffractionLevel.NONE, DiffractionCalculator.level(.7 - 1e-12))
-        assertEquals(DiffractionLevel.POSSIBLE, DiffractionCalculator.level(.7))
-        assertEquals(DiffractionLevel.POSSIBLE, DiffractionCalculator.level(1.0 - 1e-12))
-        assertEquals(DiffractionLevel.NOTICEABLE, DiffractionCalculator.level(1.0))
+    }
+
+    @Test fun `classification uses unrounded ratios at both exact boundaries`() {
+        for ((ratio, expected) in listOf(
+            .5 to DiffractionLevel.NONE,
+            .7 to DiffractionLevel.NONE,
+            .999999 to DiffractionLevel.NONE,
+            Math.nextDown(1.0) to DiffractionLevel.NONE,
+            1.0 to DiffractionLevel.POSSIBLE,
+            Math.nextUp(1.0) to DiffractionLevel.POSSIBLE,
+            1.2 to DiffractionLevel.POSSIBLE,
+            1.499999 to DiffractionLevel.POSSIBLE,
+            Math.nextDown(1.5) to DiffractionLevel.POSSIBLE,
+            1.5 to DiffractionLevel.NOTICEABLE,
+            Math.nextUp(1.5) to DiffractionLevel.NOTICEABLE,
+            2.0 to DiffractionLevel.NOTICEABLE,
+        )) assertEquals("R=$ratio", expected, DiffractionCalculator.level(ratio))
+    }
+
+    @Test fun `stricter CoC produces earlier warnings without changing Airy diameter`() {
+        val standard = DiffractionCalculator.calculate(22.0, .030)
+        val possible = DiffractionCalculator.calculate(22.0, .025)
+        val noticeable = DiffractionCalculator.calculate(22.0, .013)
+        assertEquals(DiffractionLevel.NONE, standard.level)
+        assertEquals(DiffractionLevel.POSSIBLE, possible.level)
+        assertEquals(DiffractionLevel.NOTICEABLE, noticeable.level)
+        assertEquals(standard.airyDiameterMm, possible.airyDiameterMm, 0.0)
+        assertEquals(standard.airyDiameterMm, noticeable.airyDiameterMm, 0.0)
     }
 
     @Test fun `invalid inputs and overflowing ratios never reach the UI`() {

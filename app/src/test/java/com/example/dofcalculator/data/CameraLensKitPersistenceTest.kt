@@ -26,7 +26,7 @@ class CameraLensKitPersistenceTest {
         assertEquals(expected, CameraLensKitCodec.decode(duplicate))
     }
 
-    @Test fun `built in and custom attachments independent flags and camera data survive DataStore restart`() = runBlocking {
+    @Test fun `legacy built in and custom attachments independent flags and camera data survive DataStore restart`() = runBlocking {
         val dir = Files.createTempDirectory("camera-lenses").toFile()
         val file = File(dir, "cameras.preferences_pb")
         var job = SupervisorJob()
@@ -42,10 +42,14 @@ class CameraLensKitPersistenceTest {
                 it[stringPreferencesKey("lens_old-id")] = oldLens
                 it[stringPreferencesKey("camera_v2_custom-id")] = oldCoC
                 it[stringPreferencesKey("unrelated")] = "keep"
+                // Existing attachments from the previous app version are retained, not recreated.
+                it[stringPreferencesKey("camera_lens_kit_v1_$builtId")] =
+                    CameraLensKitCodec.encode(CameraLensKit(listOf(prime)))
             }
             var repo = DataStorePresetRepository(data)
             repo.saveCamera(custom)
-            repo.saveLens(builtId, prime)
+            assertTrue(runCatching { repo.saveLens(builtId, zoom) }.isFailure)
+            repo.saveLens(builtId, prime) // existing ID may still be edited
             repo.saveLens(custom.id, zoom)
             repo.saveLens(custom.id, zoom) // upsert, including repeated Save
             repo.setShowAllPresets(builtId, true, true)
@@ -93,6 +97,9 @@ class CameraLensKitPersistenceTest {
             assertThrows(IllegalArgumentException::class.java) {
                 runBlocking { repo.saveLens("missing-camera", prime) }
             }
+            for (camera in BuiltInCameraProfiles.cameras)
+                assertTrue(runCatching { repo.saveLens(camera.id, prime) }.isFailure)
+            assertEquals(PresetLibrary(), repo.library.first())
         } finally { job.cancelAndJoin(); dir.deleteRecursively() }
     }
 }

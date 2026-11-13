@@ -6,6 +6,71 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class FocusDistanceControlTest {
+    @Test fun `hyperfocal distance request and dismissal preserve mode and calculations`() {
+        val vm = DofCalculatorViewModel()
+        vm.onFocusDistanceChanged("3.25")
+        vm.onCalculatorModeSelected(CalculatorMode.Hyperfocal)
+        val hyperfocal = vm.uiState
+
+        vm.onOpenFocusDistance()
+        assertTrue(vm.uiState.isExitHyperfocalConfirmationVisible)
+        assertFalse(vm.uiState.isFocusDistanceVisible)
+        assertEquals(CalculatorMode.Hyperfocal, vm.uiState.calculatorMode)
+        assertSame(hyperfocal.result, vm.uiState.result)
+        assertEquals(hyperfocal.focusDistance, vm.uiState.focusDistance)
+        assertEquals("3.25", vm.uiState.focusDistanceText)
+
+        vm.onCloseFocusDistance()
+        assertFalse(vm.uiState.isExitHyperfocalConfirmationVisible)
+        assertFalse(vm.uiState.isFocusDistanceVisible)
+        assertEquals(CalculatorMode.Hyperfocal, vm.uiState.calculatorMode)
+        assertSame(hyperfocal.result, vm.uiState.result)
+        vm.onOpenFocusDistance()
+        assertTrue(vm.uiState.isExitHyperfocalConfirmationVisible)
+    }
+
+    @Test fun `confirming manual distance restores saved focus and opens editable controls`() {
+        val vm = DofCalculatorViewModel()
+        vm.onFocalLengthChanged("100")
+        vm.onApertureChanged("11")
+        vm.onFocusDistanceChanged("3.25")
+        val manual = vm.uiState
+        vm.onCalculatorModeSelected(CalculatorMode.Hyperfocal)
+        vm.onOpenFocusDistance()
+
+        vm.onConfirmManualFocusDistance()
+        assertEquals(CalculatorMode.DepthOfField, vm.uiState.calculatorMode)
+        assertTrue(vm.uiState.isFocusDistanceVisible)
+        assertTrue(vm.uiState.isFocusDistanceEditable)
+        assertFalse(vm.uiState.isExitHyperfocalConfirmationVisible)
+        assertEquals(manual.focusDistance, vm.uiState.focusDistance)
+        assertEquals(manual.focalLengthText, vm.uiState.focalLengthText)
+        assertEquals(manual.apertureText, vm.uiState.apertureText)
+        assertEquals(manual.effectiveCoCMm, vm.uiState.effectiveCoCMm)
+        assertEquals(manual.result, vm.uiState.result)
+
+        vm.onFocusDistanceInputChanged("2.5")
+        assertEquals(2.5, vm.uiState.focusDistanceMeters!!, 0.0)
+        assertNotNull(vm.uiState.result)
+    }
+
+    @Test fun `confirming manual distance preserves optical infinity until edited`() {
+        val vm = DofCalculatorViewModel()
+        vm.onFocusAtInfinity()
+        vm.onCalculatorModeSelected(CalculatorMode.Hyperfocal)
+        vm.onOpenFocusDistance()
+        vm.onConfirmManualFocusDistance()
+
+        assertEquals(CalculatorMode.DepthOfField, vm.uiState.calculatorMode)
+        assertTrue(vm.uiState.isFocusDistanceVisible)
+        assertTrue(vm.uiState.focusAtInfinity)
+        assertSame(CalculatedDistance.Infinity, vm.uiState.focusDistance)
+        assertNull(vm.uiState.focusDistanceMeters)
+        vm.onFocusDistanceInputChanged("0.75")
+        assertFalse(vm.uiState.focusAtInfinity)
+        assertEquals(0.75, vm.uiState.focusDistanceMeters!!, 0.0)
+    }
+
     @Test fun `manual distance is source of truth when optical parameters change`() {
         val vm = DofCalculatorViewModel()
         vm.onFocusDistanceChanged("3,25")

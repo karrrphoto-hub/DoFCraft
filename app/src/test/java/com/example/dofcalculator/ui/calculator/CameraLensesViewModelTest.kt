@@ -135,18 +135,22 @@ class CameraLensesViewModelTest {
         vm.onLensFieldChanged(LensField.PRIME_FOCAL, "50")
         vm.onLensFieldChanged(LensField.PRIME_APERTURE, "4")
         vm.onSaveLens()
-        assertEquals(listOf(50.0), vm.uiState.focalLengthPresets)
+        assertNull(vm.uiState.lensManager.editor)
+        assertTrue(vm.uiState.cameraLensKit.lenses.isEmpty())
+        assertEquals(CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble), vm.uiState.focalLengthPresets)
         assertEquals(BuiltInCameraProfiles.cameras, vm.uiState.presets.cameras.filter { it.isBuiltIn })
     }
 
-    @Test fun `nonselected camera attachments stay separate and deleting a camera closes its kit`() {
-        val vm = vm()
+    @Test fun `legacy built in attachments stay separate and deleting a camera closes its kit`() {
         val id = BuiltInCameraProfiles.DEFAULT_ID
+        val legacy = CameraLensKit(listOf(Lens.Prime("legacy-lens", focalLengthMm = 58.0, maxAperture = 1.7)))
+        val repository = InMemoryPresetRepository(PresetLibrary(
+            cameras = BuiltInCameraProfiles.cameras + custom, selectedCameraId = custom.id,
+            lensKitsByCameraId = mapOf(id to legacy)))
+        val vm = DofCalculatorViewModel(repository, settings, scope)
         vm.onOpenCameraLenses(id)
         vm.onAddLens()
-        vm.onLensFieldChanged(LensField.PRIME_FOCAL, "58")
-        vm.onLensFieldChanged(LensField.PRIME_APERTURE, "1.7")
-        vm.onSaveLens()
+        assertNull(vm.uiState.lensManager.editor)
         assertTrue(vm.uiState.cameraLensKit.lenses.isEmpty())
         assertEquals(CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble), vm.uiState.focalLengthPresets)
         vm.onCameraProfileSelected(id)
@@ -159,6 +163,162 @@ class CameraLensesViewModelTest {
         assertFalse(vm.uiState.presets.lensKitsByCameraId.containsKey(custom.id))
         assertEquals(id, vm.uiState.presets.selectedCameraId)
         assertEquals(listOf(58.0), vm.uiState.focalLengthPresets)
+    }
+
+    @Test fun `camera activation selects the exact minimum across primes and zooms regardless of Show All`() = runBlocking {
+        val vm = vm()
+        cameras.saveLens(custom.id, Lens.Prime("prime", focalLengthMm = 58.0, maxAperture = 1.7))
+        cameras.saveLens(custom.id, Lens.Zoom("zoom", minFocalLengthMm = 48.25, maxFocalLengthMm = 217.0,
+            maxApertureAtMinFocal = 3.5, maxApertureAtMaxFocal = 5.6))
+        vm.onShowAllFocalLengths(true)
+        vm.onFocalLengthChanged("300")
+        vm.onApertureChanged("11")
+        vm.onFocusDistanceChanged("0.6")
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.VIDEO_BASED)
+        val before = vm.uiState
+        vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
+        assertEquals("300", vm.uiState.focalLengthText)
+        vm.onCameraProfileSelected(custom.id)
+        assertEquals("48.25", vm.uiState.focalLengthText)
+        assertEquals(48.25, vm.uiState.selectedFocalLengthPresetMm!!, 0.0)
+        assertEquals(before.apertureText, vm.uiState.apertureText)
+        assertEquals(before.focusDistance, vm.uiState.focusDistance)
+        assertEquals(before.sharpness, vm.uiState.sharpness)
+        assertEquals(before.diffractionSettings, vm.uiState.diffractionSettings)
+        assertEquals(before.effectiveCoCMm, vm.uiState.effectiveCoCMm)
+        vm.onFocusAtInfinity()
+        vm.onFocalLengthChanged("500")
+        vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
+        vm.onCameraProfileSelected(custom.id)
+        assertEquals("48.25", vm.uiState.focalLengthText)
+        assertSame(CalculatedDistance.Infinity, vm.uiState.focusDistance)
+    }
+
+    @Test fun `lens edits preference emissions and restart retain manual focal until explicit camera selection`() = runBlocking {
+        val vm = vm()
+        addPrime(vm, "58", "1.7")
+        vm.onFocalLengthChanged("300")
+        addPrime(vm, "20", "4")
+        vm.onShowAllFocalLengths(true)
+        vm.onShowAllApertures(true)
+        vm.onLanguageSelected(AppLanguage.Russian)
+        cameras.saveCamera(custom.copy(name = "Renamed"))
+        assertEquals("300", vm.uiState.focalLengthText)
+        val restarted = vm()
+        assertEquals("300", restarted.uiState.focalLengthText)
+        restarted.onCameraProfileSelected(custom.id)
+        assertEquals("20", restarted.uiState.focalLengthText)
+        restarted.onFocalLengthChanged("300")
+        restarted.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
+        restarted.onCameraProfileSelected(custom.id)
+        assertEquals("20", restarted.uiState.focalLengthText)
+    }
+
+    @Test fun `repository camera changes select the minimum but empty cameras preserve focal in both modes`() = runBlocking {
+        val vm = vm()
+        addPrime(vm, "135,5", "1.7")
+        for (mode in CalculatorMode.entries) {
+            vm.onCalculatorModeSelected(mode)
+            vm.onFocalLengthChanged("300")
+            val distance = vm.uiState.focusDistanceText
+            cameras.selectCamera(BuiltInCameraProfiles.DEFAULT_ID)
+            assertEquals("300", vm.uiState.focalLengthText)
+            cameras.selectCamera(custom.id)
+            assertEquals("135.5", vm.uiState.focalLengthText)
+            assertEquals(distance, vm.uiState.focusDistanceText)
+            assertEquals(mode, vm.uiState.calculatorMode)
+        }
+    }
+
+    @Test fun `no built in profile can create a new lens but legacy records remain editable`() = runBlocking {
+        val vm = vm()
+        for (camera in BuiltInCameraProfiles.cameras) {
+            vm.onOpenCameraLenses(camera.id)
+            vm.onAddLens()
+            assertNull(vm.uiState.lensManager.editor)
+            assertTrue(runCatching { cameras.saveLens(camera.id,
+                Lens.Prime("new", focalLengthMm = 50.0, maxAperture = 4.0)) }.isFailure)
+        }
+        val builtId = BuiltInCameraProfiles.DEFAULT_ID
+        val old = Lens.Prime("legacy", focalLengthMm = 80.0, maxAperture = 2.8)
+        val repository = InMemoryPresetRepository(PresetLibrary(
+            lensKitsByCameraId = mapOf(builtId to CameraLensKit(listOf(old)))))
+        val legacyVm = DofCalculatorViewModel(repository, settings, scope)
+        legacyVm.onOpenCameraLenses(builtId)
+        legacyVm.onEditLens(old.id)
+        legacyVm.onLensFieldChanged(LensField.PRIME_FOCAL, "85")
+        legacyVm.onSaveLens()
+        assertEquals(85.0, (legacyVm.uiState.cameraLensKit.lenses.single() as Lens.Prime).focalLengthMm, 0.0)
+        legacyVm.onAddLens()
+        assertNull(legacyVm.uiState.lensManager.editor)
+    }
+
+    @Test fun `adding a lens from camera editing preserves the camera draft and optical inputs`() {
+        val vm = vm()
+        vm.onFocalLengthChanged("300")
+        val before = vm.uiState
+        vm.onEditCamera(custom.id)
+        vm.onCameraEditorNameChanged("Unapplied camera name")
+        val draft = vm.uiState.presets.cameraEditor
+        vm.onAddCameraEditorLens()
+        assertEquals(custom.id, vm.uiState.lensManager.cameraId)
+        vm.onLensFieldChanged(LensField.PRIME_FOCAL, "58")
+        vm.onLensFieldChanged(LensField.PRIME_APERTURE, "1.7")
+        vm.onSaveLens()
+        assertNull(vm.uiState.lensManager.editor)
+        assertSame(draft, vm.uiState.presets.cameraEditor)
+        assertEquals(custom.name, vm.uiState.presets.cameras.single { it.id == custom.id }.name)
+        assertEquals(1, vm.uiState.cameraLensKit.lenses.size)
+        assertEquals(before.result, vm.uiState.result)
+        assertEquals(before.focalLengthText, vm.uiState.focalLengthText)
+        assertEquals(before.focusDistance, vm.uiState.focusDistance)
+        vm.onCancelCameraEditor()
+        assertNull(vm.uiState.lensManager.cameraId)
+        assertNull(vm.uiState.presets.cameraEditor)
+        // Lens operations keep their pre-existing independent persistence semantics.
+        assertEquals(1, vm.uiState.cameraLensKit.lenses.size)
+        assertEquals(custom.name, vm.uiState.presets.cameras.single { it.id == custom.id }.name)
+    }
+
+    @Test fun `inline lens edit deletion and cancellation return to the same camera form`() {
+        val vm = vm()
+        addPrime(vm, "58", "1.7")
+        vm.onCloseCameraLenses()
+        val id = vm.uiState.cameraLensKit.lenses.single().id
+        vm.onEditCamera(custom.id)
+        vm.onCameraEditorNameChanged("Saved camera name")
+        vm.onEditCameraEditorLens(id)
+        vm.onLensFieldChanged(LensField.PRIME_FOCAL, "105")
+        vm.onSaveLens()
+        assertEquals("Saved camera name", vm.uiState.presets.cameraEditor!!.nameText)
+        assertEquals(105.0, (vm.uiState.cameraLensKit.lenses.single() as Lens.Prime).focalLengthMm, 0.0)
+        vm.onDeleteCameraEditorLens(id)
+        assertEquals(id, vm.uiState.lensManager.pendingDeleteId)
+        vm.onCancelDeleteLens()
+        assertEquals(1, vm.uiState.cameraLensKit.lenses.size)
+        vm.onDeleteCameraEditorLens(id)
+        vm.onConfirmDeleteLens()
+        assertTrue(vm.uiState.cameraLensKit.lenses.isEmpty())
+        assertNotNull(vm.uiState.presets.cameraEditor)
+        vm.onAddCameraEditorLens()
+        vm.onCancelLensEditor()
+        assertNotNull(vm.uiState.presets.cameraEditor)
+        vm.onSaveCameraEditor()
+        assertNull(vm.uiState.lensManager.cameraId)
+        assertNull(vm.uiState.presets.cameraEditor)
+        assertEquals("Saved camera name", vm.uiState.presets.cameras.single { it.id == custom.id }.name)
+    }
+
+    @Test fun `unsaved camera has no lens mutations before its profile exists`() {
+        val vm = vm()
+        vm.onCreateCamera()
+        vm.onCameraEditorNameChanged("New camera draft")
+        vm.onAddCameraEditorLens()
+        vm.onEditCameraEditorLens("missing")
+        vm.onDeleteCameraEditorLens("missing")
+        assertNull(vm.uiState.lensManager.cameraId)
+        assertEquals("New camera draft", vm.uiState.presets.cameraEditor!!.nameText)
+        assertTrue(vm.uiState.presets.lensKitsByCameraId.isEmpty())
     }
 
     @Test fun `type toggle retains both drafts and invalid or incomplete forms cannot save`() {

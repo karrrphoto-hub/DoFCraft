@@ -109,6 +109,7 @@ fun DofCalculatorRoute(
         onText = viewModel::onFocusDistanceInputChanged,
         onSlider = viewModel::onDistanceSliderChanged,
         onStep = viewModel::onStepFocusDistance,
+        onConfirmManualDistance = viewModel::onConfirmManualFocusDistance,
     )
 
     DiffractionDialogs(
@@ -119,6 +120,7 @@ fun DofCalculatorRoute(
     AppDialogs(
         uiState = viewModel.uiState,
         onDiffractionWarningsEnabled = viewModel::onDiffractionWarningsEnabled,
+        onCloseFocusWarningsEnabled = viewModel::onCloseFocusWarningsEnabled,
         versionName = versionName,
         onThemeModeSelected = viewModel::onThemeModeSelected,
         onLanguageSelected = viewModel::onLanguageSelected,
@@ -132,39 +134,55 @@ fun DofCalculatorRoute(
             viewModel::onDismissSettingsStorageError,
     )
 
-    if (viewModel.uiState.lensManager.cameraId != null) CameraLensDialogs(
-        state = viewModel.uiState,
-        onClose = viewModel::onCloseCameraLenses,
-        onAdd = viewModel::onAddLens,
-        onEdit = viewModel::onEditLens,
-        onDelete = viewModel::onDeleteLens,
-        onConfirmDelete = viewModel::onConfirmDeleteLens,
-        onCancelDelete = viewModel::onCancelDeleteLens,
-        onName = viewModel::onLensNameChanged,
-        onZoom = viewModel::onLensZoomChanged,
-        onField = viewModel::onLensFieldChanged,
-        onSave = viewModel::onSaveLens,
-        onCancelEditor = viewModel::onCancelLensEditor,
-        onDismissError = viewModel::onDismissPresetStorageError,
-    ) else PresetManagementDialogs(
-        state = viewModel.uiState.presets,
-        onOpenLenses = viewModel::onOpenCameraLenses,
-        onCloseManager = viewModel::onClosePresetManager,
-        onSelectCamera = viewModel::onCameraProfileSelected,
-        onCustomFormatChanged = viewModel::onCameraCustomFormatNameChanged,
-        onConfirmDelete = viewModel::onConfirmDeleteCamera,
-        onCancelDelete = viewModel::onCancelDeleteCamera,
-        onCreateCamera = viewModel::onCreateCamera,
-        onEditCamera = viewModel::onEditCamera,
-        onDeleteCamera = viewModel::onDeleteCamera,
-        onCameraNameChanged = viewModel::onCameraEditorNameChanged,
-        onCameraFrameFormatSelected =
-            viewModel::onCameraEditorFrameFormatSelected,
-        onCameraDimensionsChanged = viewModel::onCameraDimensionsChanged,
-        onSaveCamera = viewModel::onSaveCameraEditor,
-        onCancelCamera = viewModel::onCancelCameraEditor,
-        onDismissStorageError = viewModel::onDismissPresetStorageError,
-    )
+    CameraManagementDialogs(viewModel)
+    }
+}
+
+@Composable
+internal fun CameraManagementDialogs(viewModel: DofCalculatorViewModel) {
+    val state = viewModel.uiState
+    val manager = state.lensManager
+    val inlineLenses = manager.cameraId != null &&
+        manager.cameraId == state.presets.cameraEditor?.cameraId
+    if (manager.cameraId == null || (inlineLenses && !state.presets.storageError)) {
+        PresetManagementDialogs(
+            state = state.presets,
+            onAddLens = viewModel::onAddCameraEditorLens,
+            onEditLens = viewModel::onEditCameraEditorLens,
+            onDeleteLens = viewModel::onDeleteCameraEditorLens,
+            onCloseManager = viewModel::onClosePresetManager,
+            onSelectCamera = viewModel::onCameraProfileSelected,
+            onCustomFormatChanged = viewModel::onCameraCustomFormatNameChanged,
+            onConfirmDelete = viewModel::onConfirmDeleteCamera,
+            onCancelDelete = viewModel::onCancelDeleteCamera,
+            onCreateCamera = viewModel::onCreateCamera,
+            onEditCamera = viewModel::onEditCamera,
+            onDeleteCamera = viewModel::onDeleteCamera,
+            onCameraNameChanged = viewModel::onCameraEditorNameChanged,
+            onCameraFrameFormatSelected = viewModel::onCameraEditorFrameFormatSelected,
+            onCameraDimensionsChanged = viewModel::onCameraDimensionsChanged,
+            onSaveCamera = viewModel::onSaveCameraEditor,
+            onCancelCamera = viewModel::onCancelCameraEditor,
+            onDismissStorageError = viewModel::onDismissPresetStorageError,
+        )
+    }
+    if (manager.cameraId != null && (!inlineLenses || manager.editor != null ||
+            manager.pendingDeleteId != null || state.presets.storageError)) {
+        CameraLensDialogs(
+            state = state,
+            onClose = viewModel::onCloseCameraLenses,
+            onAdd = viewModel::onAddLens,
+            onEdit = viewModel::onEditLens,
+            onDelete = viewModel::onDeleteLens,
+            onConfirmDelete = viewModel::onConfirmDeleteLens,
+            onCancelDelete = viewModel::onCancelDeleteLens,
+            onName = viewModel::onLensNameChanged,
+            onZoom = viewModel::onLensZoomChanged,
+            onField = viewModel::onLensFieldChanged,
+            onSave = viewModel::onSaveLens,
+            onCancelEditor = viewModel::onCancelLensEditor,
+            onDismissError = viewModel::onDismissPresetStorageError,
+        )
     }
 }
 
@@ -249,6 +267,49 @@ fun DofCalculatorScreen(
                 .consumeWindowInsets(innerPadding)
                 .imePadding(),
         )
+    }
+}
+
+@Preview(name = "Both warnings English", widthDp = 360, heightDp = 1000, locale = "en")
+@Preview(name = "Both warnings Russian", widthDp = 360, heightDp = 1000, locale = "ru")
+@Composable
+private fun SimultaneousWarningsPreview() {
+    val state = remember {
+        val input = DepthOfFieldInput(100.0, 32.0, .030, .6)
+        DofCalculatorUiState(
+            focalLengthText = "100", apertureText = "32",
+            focusDistanceText = "0.6", focusDistanceMeters = .6,
+            focusDistance = com.example.dofcalculator.model.CalculatedDistance.Finite(.6),
+            result = DepthOfFieldCalculator.calculate(input),
+            diffractionResult = com.example.dofcalculator.calculation.DiffractionCalculator.calculate(32.0, .030),
+            closeFocusWarning = com.example.dofcalculator.calculation.CloseFocusEvaluator.evaluate(
+                100.0, com.example.dofcalculator.model.CalculatedDistance.Finite(.6)),
+        )
+    }
+    DOFCalculatorTheme(dynamicColor = false) { DofCalculatorScreen(state) }
+}
+
+@Preview(name = "Print card English", widthDp = 360, heightDp = 720, locale = "en")
+@Preview(name = "Print card Russian", widthDp = 360, heightDp = 720, locale = "ru")
+@Composable
+private fun PrintSharpnessCardPreview() {
+    OutputSharpnessCardPreview(com.example.dofcalculator.model.SharpnessCriterionMode.PRINT_BASED)
+}
+
+@Preview(name = "Screen card English", widthDp = 360, heightDp = 720, locale = "en")
+@Preview(name = "Screen card Russian large", widthDp = 320, heightDp = 800, locale = "ru", fontScale = 1.3f)
+@Composable
+private fun ScreenSharpnessCardPreview() {
+    OutputSharpnessCardPreview(com.example.dofcalculator.model.SharpnessCriterionMode.SCREEN_BASED)
+}
+
+@Composable
+private fun OutputSharpnessCardPreview(mode: com.example.dofcalculator.model.SharpnessCriterionMode) {
+    DOFCalculatorTheme(dynamicColor = false) {
+        DofCalculatorScreen(DofCalculatorUiState(
+            sharpness = com.example.dofcalculator.model.SharpnessSettings(
+                mode = mode, screenWidthPx = 1920.0, screenHeightPx = 1080.0),
+        ))
     }
 }
 

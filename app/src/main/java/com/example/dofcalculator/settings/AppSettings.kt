@@ -40,6 +40,7 @@ data class AppSettings(
     val apertureIncrements: ApertureIncrements = ApertureIncrements.FullStop,
     val sharpness: SharpnessSettings = SharpnessSettings(),
     val diffraction: DiffractionSettings = DiffractionSettings(),
+    val closeFocusWarningsEnabled: Boolean = true,
     val sharpnessMigrated: Boolean = false,
     // Archived raw calculator CoC, kept for explicit import without replacing an active criterion.
     val legacyCoCForMigration: String? = null,
@@ -61,4 +62,6 @@ interface AppSettingsRepository {
     suspend fun setApertureIncrements(increments: ApertureIncrements)
 
     suspend fun saveDiffractionSettings(settings: DiffractionSettings)
+
+    suspend fun setCloseFocusWarningsEnabled(enabled: Boolean)
 }

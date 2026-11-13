@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
@@ -30,11 +30,10 @@ internal fun diffractionMicrons(mm: Double, locale: Locale): String {
 internal fun DiffractionWarning(state: DofCalculatorUiState, onInformation: () -> Unit) {
     if (!state.showDiffractionWarning) return
     val result = checkNotNull(state.diffractionResult)
-    val locale = LocalResources.current.configuration.locales[0]
     val prominent = result.level == DiffractionLevel.NOTICEABLE
     Card(
         onClick = onInformation,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().testTag("diffraction-warning"),
         colors = CardDefaults.cardColors(
             containerColor = if (prominent) MaterialTheme.colorScheme.secondaryContainer
                 else MaterialTheme.colorScheme.surfaceContainerHigh,
@@ -43,11 +42,11 @@ internal fun DiffractionWarning(state: DofCalculatorUiState, onInformation: () -
     ) {
         Row(Modifier.padding(12.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("ⓘ", Modifier.clearAndSetSemantics {}, style = MaterialTheme.typography.titleMedium)
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(stringResource(if (prominent) R.string.diffraction_noticeable else R.string.diffraction_possible),
                     style = MaterialTheme.typography.titleSmall)
                 Text(stringResource(if (prominent) R.string.diffraction_noticeable_body
-                    else R.string.diffraction_possible_body, diffractionNumber(result.nominalAperture, locale)),
+                    else R.string.diffraction_possible_body),
                     style = MaterialTheme.typography.bodySmall)
             }
         }
@@ -56,19 +55,21 @@ internal fun DiffractionWarning(state: DofCalculatorUiState, onInformation: () -
 
 @androidx.compose.ui.tooling.preview.Preview(name = "English diffraction", widthDp = 360,
     locale = "en", showBackground = true)
-@androidx.compose.ui.tooling.preview.Preview(name = "Russian large font dark", widthDp = 320,
+@androidx.compose.ui.tooling.preview.Preview(name = "Russian large font dark", widthDp = 320, heightDp = 1400,
     locale = "ru", fontScale = 1.5f, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES,
     showBackground = true)
 @Composable
 private fun DiffractionWarningPreview() {
-    val state = androidx.compose.runtime.remember {
-        DofCalculatorUiState(diffractionResult = com.example.dofcalculator.calculation.DiffractionCalculator
-            .calculate(16.0, .013))
+    val states = androidx.compose.runtime.remember {
+        listOf(22.0, 32.0, 45.0).map { aperture ->
+            DofCalculatorUiState(diffractionResult = com.example.dofcalculator.calculation.DiffractionCalculator
+                .calculate(aperture, .030))
+        }
     }
     com.example.dofcalculator.ui.theme.DOFCalculatorTheme(dynamicColor = false) {
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DiffractionWarning(state, {})
+                states.forEach { DiffractionWarning(it, {}) }
             }
         }
     }

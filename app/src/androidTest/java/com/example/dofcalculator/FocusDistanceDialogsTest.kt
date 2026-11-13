@@ -30,7 +30,8 @@ class FocusDistanceDialogsTest {
                     DofCalculatorScreen(vm.uiState, onOpenFocusDistance = vm::onOpenFocusDistance,
                         onCalculatorModeSelected = vm::onCalculatorModeSelected)
                     FocusDistanceDialogs(vm.uiState, vm::onCloseFocusDistance,
-                        vm::onFocusDistanceInputChanged, vm::onDistanceSliderChanged, vm::onStepFocusDistance)
+                        vm::onFocusDistanceInputChanged, vm::onDistanceSliderChanged, vm::onStepFocusDistance,
+                        vm::onConfirmManualFocusDistance)
                 }
             }
         }
@@ -58,17 +59,37 @@ class FocusDistanceDialogsTest {
             assertEquals(CalculatorMode.Hyperfocal, vm.uiState.calculatorMode)
             assertEquals(vm.uiState.result!!.hyperfocalDistanceMeters, vm.uiState.focusDistanceMeters!!, 0.0)
         }
+        val question = t(
+            "Exit hyperfocal mode and set the focus distance manually?",
+            "Выйти из режима гиперфокала и задать дистанцию вручную?",
+        )
         text(t("Distance", "Дистанция")).performClick()
+        text(question).assertIsDisplayed()
+        compose.onNodeWithContentDescription(field).assertDoesNotExist()
+        compose.onNodeWithContentDescription(slider).assertDoesNotExist()
+        text(t("No", "Нет")).performClick()
+        text(question).assertDoesNotExist()
+        h().assertIsSelected()
+        compose.runOnIdle { assertEquals(CalculatorMode.Hyperfocal, vm.uiState.calculatorMode) }
+
+        text(t("Distance", "Дистанция")).performClick()
+        text(question).assertIsDisplayed()
+        androidx.test.espresso.Espresso.pressBack()
+        text(question).assertDoesNotExist()
+        h().assertIsSelected()
+
+        text(t("Distance", "Дистанция")).performClick()
+        text(t("Yes", "Да")).performClick()
+        text(question).assertDoesNotExist()
         noModesInDialog()
-        compose.onNodeWithContentDescription(field).assertIsNotEnabled()
-        compose.onNodeWithContentDescription(slider).assertIsNotEnabled()
-        text(t("Close", "Закрыть")).performClick()
-        h().performClick()
-        h().assertIsNotSelected()
+        compose.onNodeWithContentDescription(field).assertIsEnabled()
+        compose.onNodeWithContentDescription(slider).assertIsEnabled()
         compose.runOnIdle {
             assertEquals(CalculatorMode.DepthOfField, vm.uiState.calculatorMode)
             assertEquals(5.0, vm.uiState.focusDistanceMeters!!, 0.0)
         }
+        text(t("Close", "Закрыть")).performClick()
+        h().assertIsNotSelected()
 
         text(t("Distance", "Дистанция")).performClick()
         compose.onNodeWithContentDescription(field).performTextReplacement("0,3")

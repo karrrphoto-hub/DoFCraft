@@ -27,7 +27,12 @@ internal class InMemoryPresetRepository(
         state.value = state.value.copy(selectedCameraId = cameraId)
     }
     override suspend fun saveLens(cameraId: String, lens: com.example.dofcalculator.model.Lens) {
-        updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lens.id } + lens) }
+        val builtIn = BuiltInCameraProfiles.isReservedId(cameraId) ||
+            state.value.cameras.any { it.id == cameraId && it.isBuiltIn }
+        updateKit(cameraId) {
+            require(!builtIn || lenses.any { it.id == lens.id })
+            copy(lenses = lenses.filterNot { it.id == lens.id } + lens)
+        }
     }
     override suspend fun deleteLens(cameraId: String, lensId: String) {
         updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lensId }) }

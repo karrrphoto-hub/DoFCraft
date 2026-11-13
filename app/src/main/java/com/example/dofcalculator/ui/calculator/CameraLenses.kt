@@ -99,27 +99,68 @@ internal fun CameraLensDialogs(
                     if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses))
                     LazyColumn(Modifier.heightIn(max = 400.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(lenses, key = { it.id }) { lens ->
-                            Column {
-                                if (lens.name.isNotBlank()) Text(lens.name, style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 2, overflow = TextOverflow.Ellipsis)
-                                Text(lensSummary(lens), style = MaterialTheme.typography.bodyMedium)
-                                lens.minAperture?.let {
-                                    Text(stringResource(R.string.lens_closed_value,
-                                        formatPresetNumber(it, LocalResources.current.configuration.locales[0])),
-                                        style = MaterialTheme.typography.bodySmall)
-                                }
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    TextButton(onClick = { onEdit(lens.id) }) { Text(stringResource(R.string.edit_lens)) }
-                                    TextButton(onClick = { onDelete(lens.id) }) { Text(stringResource(R.string.delete_lens)) }
-                                }
-                                HorizontalDivider()
-                            }
+                            CameraLensDetails(lens, onEdit, onDelete)
                         }
                     }
                 }
             },
-            confirmButton = { TextButton(onClick = onAdd) { Text(stringResource(R.string.add_lens)) } },
+            confirmButton = {
+                if (!camera.isBuiltIn) TextButton(onClick = onAdd) { Text(stringResource(R.string.add_lens)) }
+            },
             dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.close)) } })
+    }
+}
+
+/** Read-only kit information in the camera picker; no nested lens-management action. */
+@Composable
+internal fun CameraLensDescriptions(lenses: List<Lens>, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        lenses.forEach { lens ->
+            val summary = lensSummary(lens)
+            Text(if (lens.name.isBlank()) summary
+                else stringResource(R.string.lens_named_summary, lens.name, summary),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+internal fun CameraLensesSection(
+    lenses: List<Lens>,
+    canAdd: Boolean,
+    onAdd: () -> Unit,
+    onEdit: (String) -> Unit,
+    onDelete: (String) -> Unit,
+) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.lenses_title), style = MaterialTheme.typography.titleMedium)
+        if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses), style = MaterialTheme.typography.bodySmall)
+        lenses.forEach { lens -> CameraLensDetails(lens, onEdit, onDelete) }
+        TextButton(onClick = onAdd, enabled = canAdd, modifier = Modifier.heightIn(min = 48.dp)) {
+            Text(stringResource(R.string.add_lens))
+        }
+    }
+}
+
+@Composable
+private fun CameraLensDetails(lens: Lens, onEdit: (String) -> Unit, onDelete: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        if (lens.name.isNotBlank()) Text(lens.name, style = MaterialTheme.typography.titleSmall,
+            maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(lensSummary(lens), style = MaterialTheme.typography.bodyMedium)
+        lens.minAperture?.let {
+            Text(stringResource(R.string.lens_closed_value,
+                formatPresetNumber(it, LocalResources.current.configuration.locales[0])),
+                style = MaterialTheme.typography.bodySmall)
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            TextButton(onClick = { onEdit(lens.id) }) { Text(stringResource(R.string.edit_lens)) }
+            TextButton(onClick = { onDelete(lens.id) }) { Text(stringResource(R.string.delete_lens)) }
+        }
+        HorizontalDivider()
     }
 }
 

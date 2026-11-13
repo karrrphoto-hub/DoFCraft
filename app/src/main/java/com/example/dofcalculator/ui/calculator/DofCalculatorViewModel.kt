@@ -88,13 +88,25 @@ class DofCalculatorViewModel internal constructor(
         uiState = uiState.copy(lensManager = LensManagerUiState(cameraId))
     }
 
+    private fun withCameraEditorLenses(action: () -> Unit) {
+        val cameraId = uiState.presets.cameraEditor?.cameraId ?: return
+        if (uiState.presets.cameras.none { it.id == cameraId && !it.isBuiltIn }) return
+        onOpenCameraLenses(cameraId)
+        action()
+    }
+
+    fun onAddCameraEditorLens() = withCameraEditorLenses { onAddLens() }
+    fun onEditCameraEditorLens(lensId: String) = withCameraEditorLenses { onEditLens(lensId) }
+    fun onDeleteCameraEditorLens(lensId: String) = withCameraEditorLenses { onDeleteLens(lensId) }
+
     fun onCloseCameraLenses() {
         if (uiState.lensManager.editor?.isSaving == true) return
         uiState = uiState.copy(lensManager = LensManagerUiState())
     }
 
     fun onAddLens() {
-        if (uiState.lensManager.cameraId == null) return
+        val camera = uiState.presets.cameras.firstOrNull { it.id == uiState.lensManager.cameraId } ?: return
+        if (camera.isBuiltIn) return
         uiState = uiState.copy(lensManager = uiState.lensManager.copy(
             editor = LensEditorUiState(LensDraft(UUID.randomUUID().toString()))))
     }
@@ -129,6 +141,8 @@ class DofCalculatorViewModel internal constructor(
     fun onSaveLens() {
         val cameraId = uiState.lensManager.cameraId ?: return
         val editor = uiState.lensManager.editor?.takeUnless { it.isSaving } ?: return
+        val camera = uiState.presets.cameras.firstOrNull { it.id == cameraId } ?: return
+        if (camera.isBuiltIn && editor.isNew) return
         val validation = com.example.dofcalculator.calculation.LensInputValidator.validate(editor.draft)
         uiState = uiState.copy(lensManager = uiState.lensManager.copy(editor =
             editor.copy(validation = validation, showErrors = true, isSaving = validation.lens != null)))
@@ -261,7 +275,7 @@ class DofCalculatorViewModel internal constructor(
     fun onCameraProfileSelected(cameraId: String) {
         if (uiState.presets.cameras.none { it.id == cameraId }) return
         uiState = uiState.copy(presets = uiState.presets.copy(selectedCameraId = cameraId))
-        applySelectedCamera()
+        applySelectedCamera(activate = true)
         launchRepositoryOperation { presetRepository.selectCamera(cameraId) }
     }
 
@@ -373,7 +387,11 @@ class DofCalculatorViewModel internal constructor(
     }
 
     fun onCalculatorModeSelected(mode: CalculatorMode) {
-        uiState = recalculate(uiState.copy(calculatorMode = mode))
+        uiState = recalculate(uiState.copy(
+            calculatorMode = mode,
+            isFocusDistanceVisible = false,
+            isExitHyperfocalConfirmationVisible = false,
+        ))
     }
 
     fun onThemeModeSelected(themeMode: ThemeMode) {
@@ -391,15 +409,35 @@ class DofCalculatorViewModel internal constructor(
     }
 
     fun onOpenFocusDistance() {
-        uiState = uiState.copy(isFocusDistanceVisible = true)
+        uiState = uiState.copy(
+            isFocusDistanceVisible = uiState.isFocusDistanceEditable,
+            isExitHyperfocalConfirmationVisible = !uiState.isFocusDistanceEditable,
+        )
+    }
+
+    fun onConfirmManualFocusDistance() {
+        if (!uiState.isExitHyperfocalConfirmationVisible) return
+        uiState = recalculate(uiState.copy(
+            calculatorMode = CalculatorMode.DepthOfField,
+            isFocusDistanceVisible = true,
+            isExitHyperfocalConfirmationVisible = false,
+        ))
     }
 
     fun onCloseFocusDistance() {
-        uiState = uiState.copy(isFocusDistanceVisible = false)
+        uiState = uiState.copy(
+            isFocusDistanceVisible = false,
+            isExitHyperfocalConfirmationVisible = false,
+        )
     }
 
     fun onOpenDiffractionInfo() { uiState = uiState.copy(isDiffractionInfoVisible = true) }
     fun onCloseDiffractionInfo() { uiState = uiState.copy(isDiffractionInfoVisible = false) }
+
+    fun onCloseFocusWarningsEnabled(enabled: Boolean) {
+        uiState = uiState.copy(closeFocusWarningsEnabled = enabled)
+        launchSettingsOperation { appSettingsRepository.setCloseFocusWarningsEnabled(enabled) }
+    }
 
     fun onDiffractionWarningsEnabled(enabled: Boolean) {
         updateDiffractionSettings(uiState.diffractionSettings.copy(warningsEnabled = enabled))
@@ -418,6 +456,17 @@ class DofCalculatorViewModel internal constructor(
             DiffractionCalculator.calculate(aperture, state.effectiveCoCMm)
         }.getOrNull()
         return state.copy(diffractionResult = result)
+    }
+
+    private fun withCloseFocus(state: DofCalculatorUiState): DofCalculatorUiState {
+        // Hyperfocal has no close-distance prompt or separate magnification calculation.
+        if (state.calculatorMode != CalculatorMode.DepthOfField) return state
+        val input = CloseFocusInput(state.focalLengthText.toPositiveDecimalOrNull(),
+            state.focusDistance.takeUnless { state.focusDistanceHasError })
+        if (input == state.closeFocusInput) return state
+        return state.copy(closeFocusInput = input,
+            closeFocusWarning = com.example.dofcalculator.calculation.CloseFocusEvaluator
+                .evaluate(input.focalLengthMm, input.focusDistance))
     }
 
     fun onOpenSettings() {
@@ -535,13 +584,18 @@ class DofCalculatorViewModel internal constructor(
             widthMm = width, heightMm = height,
             customFormatName = editor.customFormatName.trim(),
         )
-        uiState = uiState.copy(presets = uiState.presets.copy(cameraEditor = null))
+        uiState = uiState.copy(presets = uiState.presets.copy(cameraEditor = null),
+            lensManager = if (uiState.lensManager.cameraId == editor.cameraId)
+                LensManagerUiState() else uiState.lensManager)
         launchRepositoryOperation { presetRepository.saveCamera(camera) }
     }
 
     fun onCancelCameraEditor() {
+        val cameraId = uiState.presets.cameraEditor?.cameraId
         uiState = uiState.copy(
             presets = uiState.presets.copy(cameraEditor = null),
+            lensManager = if (uiState.lensManager.cameraId == cameraId)
+                LensManagerUiState() else uiState.lensManager,
         )
     }
 
@@ -588,6 +642,7 @@ class DofCalculatorViewModel internal constructor(
                         ?.trim()?.replace(',', '.')?.toDoubleOrNull()
                         ?.takeIf { it.isFinite() && it > 0.0 },
                     diffractionSettings = settings.diffraction,
+                    closeFocusWarningsEnabled = settings.closeFocusWarningsEnabled,
                     apertureIncrements = settings.apertureIncrements,
                     calculatorMode = calculator.mode,
                     selectedFrameFormat = calculator.frameFormat,
@@ -609,6 +664,7 @@ class DofCalculatorViewModel internal constructor(
             // Diffraction inputs, like sharpness inputs, are restored once. A delayed
             // DataStore snapshot must not replace a newer manual edit in progress.
             val updated = uiState.copy(
+                closeFocusWarningsEnabled = settings.closeFocusWarningsEnabled,
                 apertureIncrements = settings.apertureIncrements,
                 distanceUnit = settings.distanceUnit,
                 distanceRounding = settings.distanceRounding,
@@ -620,6 +676,9 @@ class DofCalculatorViewModel internal constructor(
     }
 
     private fun onPresetLibraryChanged(library: PresetLibrary) {
+        // Initial restoration keeps last-used optical inputs; subsequent camera switches activate the kit.
+        val activate = libraryRestored && settingsRestored &&
+            library.selectedCameraId != uiState.presets.selectedCameraId
         libraryRestored = true
         uiState = uiState.copy(
             lensManager = uiState.lensManager.takeIf { manager ->
@@ -632,10 +691,10 @@ class DofCalculatorViewModel internal constructor(
                 lensKitsByCameraId = library.lensKitsByCameraId,
             ),
         )
-        applySelectedCamera()
+        applySelectedCamera(activate = activate)
     }
 
-    private fun applySelectedCamera() {
+    private fun applySelectedCamera(activate: Boolean = false) {
         val camera = uiState.presets.cameras.firstOrNull {
             it.id == uiState.presets.selectedCameraId
         } ?: return
@@ -646,7 +705,12 @@ class DofCalculatorViewModel internal constructor(
             val currentSharpness = uiState.sharpness
             launchSettingsOperation { appSettingsRepository.saveSharpnessSettings(currentSharpness) }
         }
-        uiState = recalculate(uiState.copy(selectedFrameFormat = camera.frameFormat))
+        val minimumFocal = if (activate)
+            com.example.dofcalculator.calculation.FocalLengthPresetsGenerator
+                .minimumFocalLengthMm(uiState.presets.lensKitsByCameraId[camera.id]?.lenses.orEmpty())
+        else null
+        uiState = recalculate(uiState.copy(selectedFrameFormat = camera.frameFormat,
+            focalLengthText = minimumFocal?.toPresetInput() ?: uiState.focalLengthText))
     }
 
     private fun updateCameraEditor(
@@ -808,7 +872,7 @@ class DofCalculatorViewModel internal constructor(
             distanceSliderPosition = calculatedState.focusDistance?.let {
                 scale?.positionOf(it)
             } ?: 0.0)
-        val evaluated = withDiffraction(calculated)
+        val evaluated = withCloseFocus(withDiffraction(calculated))
         // Retain valid physical inputs even when geometric DOF is unavailable at a short distance.
         val validInputs = candidate.focalLengthText.toPositiveDecimalOrNull() != null &&
             candidate.apertureText.toPositiveDecimalOrNull() != null &&

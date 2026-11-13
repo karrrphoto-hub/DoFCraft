@@ -97,6 +97,8 @@ internal fun CompactCalculatorContent(
 ) {
     var editorName by rememberSaveable { mutableStateOf<String?>(null) }
     val selectedCamera = uiState.matchingCameraProfile()
+    val locale = LocalResources.current.configuration.locales[0]
+    val sharpness = uiState.sharpness
 
     Box(
         modifier = modifier,
@@ -138,8 +140,24 @@ internal fun CompactCalculatorContent(
                         stringResource(R.string.video_card_title, stringResource(uiState.sharpness.mode.labelResource()),
                             videoResolutionShort(uiState.sharpness.video))
                     else stringResource(uiState.sharpness.mode.labelResource()),
-                    supportingValue = stringResource(R.string.sharpness_coc_value,
-                        formatCoC(uiState.effectiveCoCMm, LocalResources.current.configuration.locales[0])),
+                    supportingValue = when (sharpness.mode) {
+                        SharpnessCriterionMode.PRINT_BASED -> stringResource(
+                            R.string.print_size_cm,
+                            referenceNumber(sharpness.printWidthCm, locale),
+                            referenceNumber(sharpness.printHeightCm, locale),
+                        )
+                        SharpnessCriterionMode.SCREEN_BASED -> stringResource(
+                            R.string.screen_card_summary,
+                            stringResource(sharpness.screenDevice.labelResource()),
+                            referenceNumber(sharpness.screenDiagonalInches, locale),
+                            referenceNumber(sharpness.screenWidthPx, locale),
+                            referenceNumber(sharpness.screenHeightPx, locale),
+                        )
+                        SharpnessCriterionMode.CUSTOM -> stringResource(
+                            R.string.sharpness_coc_value, formatCoC(uiState.effectiveCoCMm, locale),
+                        )
+                        else -> null
+                    },
                     onClick = onOpenSharpness,
                     modifier = Modifier.weight(1f).fillMaxHeight(),
                     multiline = true,
@@ -175,17 +193,18 @@ internal fun CompactCalculatorContent(
                 )
             }
 
-            DiffractionWarning(
-                state = uiState,
-                onInformation = onOpenDiffractionInfo,
-            )
-
             DistanceParameterTile(
                 state = uiState,
                 onDistance = onOpenFocusDistance,
                 onMode = onCalculatorModeSelected,
             )
 
+            // Independent warnings share one location; neither takes precedence over the other.
+            DiffractionWarning(
+                state = uiState,
+                onInformation = onOpenDiffractionInfo,
+            )
+            if (uiState.showCloseFocusWarning) CloseFocusWarningCard(uiState.closeFocusWarning)
 
             ResultsInfographic(
                 result = uiState.result,

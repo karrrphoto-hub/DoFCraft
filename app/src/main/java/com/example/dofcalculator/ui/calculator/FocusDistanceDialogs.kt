@@ -17,8 +17,21 @@ internal fun FocusDistanceDialogs(
     onText: (String) -> Unit,
     onSlider: (Double) -> Unit,
     onStep: (Boolean) -> Unit,
+    onConfirmManualDistance: () -> Unit,
 ) {
-    if (state.isFocusDistanceVisible) {
+    if (state.isExitHyperfocalConfirmationVisible) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text(stringResource(R.string.focus_distance_title)) },
+            text = { Text(stringResource(R.string.exit_hyperfocal_confirmation)) },
+            confirmButton = {
+                TextButton(onClick = onConfirmManualDistance) { Text(stringResource(R.string.yes)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text(stringResource(R.string.no)) }
+            },
+        )
+    } else if (state.isFocusDistanceVisible) {
         AlertDialog(
             onDismissRequest = onDismiss,
             title = { Text(stringResource(R.string.focus_distance_title)) },

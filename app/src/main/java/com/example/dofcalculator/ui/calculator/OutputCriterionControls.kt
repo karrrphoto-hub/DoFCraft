@@ -220,7 +220,7 @@ private fun printSizeLabel(size: PrintSizePreset): String =
     else stringResource(R.string.print_size_cm, referenceNumber(requireNotNull(size.widthCm), Locale.ROOT),
         referenceNumber(requireNotNull(size.heightCm), Locale.ROOT))
 
-private fun ScreenDevice.labelResource(): Int = when (this) {
+internal fun ScreenDevice.labelResource(): Int = when (this) {
     ScreenDevice.SMARTPHONE -> R.string.screen_smartphone
     ScreenDevice.TABLET -> R.string.screen_tablet
     ScreenDevice.MONITOR -> R.string.screen_monitor

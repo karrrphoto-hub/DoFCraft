@@ -14,6 +14,10 @@ internal class InMemoryAppSettingsRepository(
         state.value = state.value.copy(diffraction = settings)
     }
 
+    override suspend fun setCloseFocusWarningsEnabled(enabled: Boolean) {
+        state.value = state.value.copy(closeFocusWarningsEnabled = enabled)
+    }
+
     override suspend fun setThemeMode(themeMode: ThemeMode) {
         state.value = state.value.copy(themeMode = themeMode)
     }

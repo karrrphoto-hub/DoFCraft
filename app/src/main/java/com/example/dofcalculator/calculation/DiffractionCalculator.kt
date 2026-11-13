@@ -7,8 +7,8 @@ object DiffractionCalculator {
     const val WAVELENGTH_MM = 0.00055
     const val AIRY_DIAMETER_FACTOR = 2.44
     // App heuristics, not universal optical sharpness standards.
-    const val POSSIBLE_THRESHOLD = 0.7
-    const val NOTICEABLE_THRESHOLD = 1.0
+    const val POSSIBLE_THRESHOLD = 1.0
+    const val NOTICEABLE_THRESHOLD = 1.5
 
     private fun positive(value: Double): Double {
         require(value.isFinite() && value > 0.0)

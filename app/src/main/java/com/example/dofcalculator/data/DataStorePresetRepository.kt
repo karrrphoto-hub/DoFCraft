@@ -52,7 +52,10 @@ class DataStorePresetRepository(private val dataStore: DataStore<Preferences>) :
         }
     }
     override suspend fun saveLens(cameraId: String, lens: com.example.dofcalculator.model.Lens) {
-        updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lens.id } + lens) }
+        updateKit(cameraId) {
+            require(!BuiltInCameraProfiles.isReservedId(cameraId) || lenses.any { it.id == lens.id })
+            copy(lenses = lenses.filterNot { it.id == lens.id } + lens)
+        }
     }
     override suspend fun deleteLens(cameraId: String, lensId: String) {
         updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lensId }) }
