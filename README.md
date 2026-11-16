@@ -10,9 +10,9 @@
 
   <p>English &nbsp;|&nbsp; <a href="README.ru.md">Русский</a></p>
 
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.apk"><strong>Download APK · DoF Master 1.0.1</strong></a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk"><strong>Download APK · DoF Master 1.0.2</strong></a></p>
   <p>Android 8.0+ &nbsp;·&nbsp; Signed Release APK &nbsp;·&nbsp; No sign-in required</p>
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.1">Release notes and SHA-256 checksum</a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2">Release notes and SHA-256 checksum</a></p>
 </div>
 
 ---
@@ -41,7 +41,7 @@ For landscapes, switch to hyperfocal mode to find the focus distance that extend
 - **Depth of field and hyperfocal distance.** Near and far limits, total depth of field and a diagram of the scene.
 - **Flexible distance input.** An adaptive slider, manual entry and an explicit optical infinity setting.
 - **Your cameras and lenses.** Custom camera profiles with physical frame dimensions and kits of prime and zoom lenses.
-- **Quick values from your kit.** All lenses attached to a custom camera contribute focal length and aperture presets. Unusual values are preserved, and manual input is always available.
+- **Quick values for your lens.** Select a lens in Focal Length to use its focal length and aperture presets and distance-scale units. Manual input is always available.
 - **Information without restrictions.** Independent diffraction and close focus messages explain calculation limits without changing your shooting parameters.
 - **Make it yours.** English and Russian, light, dark and system themes, measurement units and number formatting options.
 
@@ -64,11 +64,13 @@ Calculations help plan a shot; they do not guarantee identical detail from every
 
 ## Cameras and quick values
 
-Create a custom camera profile and add your lenses. A kit such as **24–120 mm f/4 + 50 mm f/1.4 + 200 mm f/4** produces useful presets across the whole set. There is no active lens to select.
+Create a custom camera profile and add your lenses. In **Focal Length**, choose the lens you are using. Its focal range, aperture presets and distance-scale units become available. Lens selection is remembered for each camera. Selecting a lens brings out-of-range focal length and aperture inputs to its nearest supported limits; manual input remains available afterward.
 
-Zooms contribute standard focal lengths within each individual range and their exact endpoints. A 58 mm prime or a 48–217 mm zoom keeps its own values. Aperture presets account for the maximum apertures and specified minimum apertures across the kit.
+Zooms contribute standard focal lengths within their range and their exact endpoints. A 58 mm prime or a 48–217 mm zoom keeps its own values. Set each lens's distance scale to meters or feet in Camera Profile.
 
-**Show All Focal Lengths** and **Show All Apertures** work independently. A filtered preset list never prevents you from entering another valid value manually.
+**Ignore Lens Profile** is shared by the focal length and aperture dialogs. It restores the standard quick values and app distance units together, while keeping your selected lens and physical focus distance.
+
+When lens and app distance units differ, hyperfocal distance appears in app units first, with lens-scale units in parentheses. An explanation helps you transfer that distance to the scale on your lens. Switching to a different camera resets the sharpness criterion to Standard; editing the current camera preserves it.
 
 ## Offline by design
 
@@ -76,11 +78,11 @@ The app runs locally, with no advertising, analytics, accounts or telemetry. It 
 
 ## Installation
 
-1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.apk) on your Android device.
+1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk) on your Android device.
 2. Open the downloaded file and, if prompted, allow your browser or file manager to install this app.
 3. Complete installation. Android 8.0 or newer is required.
 
-The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.1) includes a SHA-256 checksum for verifying the download.
+The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2) includes a SHA-256 checksum for verifying the download.
 
 If you previously installed a private Debug build, this Release uses a different signing certificate and cannot update it in place. Keep the old installation if you need its saved profiles; uninstalling it can erase app data.
 
