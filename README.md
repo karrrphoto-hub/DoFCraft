@@ -75,7 +75,7 @@ Development rules: [AGENTS.md](AGENTS.md).
 
 This is the private source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
 
-The latest published APK at the time of this rebrand is [DoF Master 1.0.2](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2). The separate public distribution repository and its existing APKs retain their historical names; this change does not publish a new APK. No Google Play listing is claimed.
+Download [DoFCraft 1.0.3](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3) from the separate public distribution repository. Its historical repository name and older APKs are retained. Existing production-signed installations can update in place. No Google Play listing is claimed.
 
 The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the private `archive/macro-prototype` branch.
 

@@ -79,6 +79,15 @@ dual hyperfocal readings and localized explanations. Preserves existing kit reco
 Build validation: JVM tests, Release lint, optimized Release build and signed APK
 launch on the emulator. Public distribution remains documentation plus APK/checksum.
 
+## Release 1.0.3
+
+DoFCraft branding; versionCode 4. Same application ID and permanent signing
+certificate as previous production releases; no data migration or reset.
+APK: `DoFCraft-1.0.3.apk` (1,894,352 bytes).
+SHA-256: `9f92845d90c0a8e68226ba633f261aaa3b76f6ba030f527e677850d5e496fa42`.
+Public distribution stays in the existing DoF-Master repository, with updated
+DoFCraft presentation. Source and the Macro archive remain private.
+
 ## Upgrade from earlier private Debug builds
 
 Those APKs use the Android Debug certificate. Android cannot install the new
