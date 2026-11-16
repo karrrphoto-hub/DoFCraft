@@ -64,8 +64,8 @@ class LensInputValidatorTest {
         assertThrows(IllegalArgumentException::class.java) { CameraLensKit(listOf(lens, lens)) }
     }
     @Test fun `draft roundtrip keeps type and exact doubles including extreme positive values`() {
-        val lenses = listOf(Lens.Prime("p", "Name", 135.5, .95, 64.0),
-            Lens.Zoom("z", "Zoom", 48.0, 3.5, 217.0, 4.5, 45.0),
+        val lenses = listOf(Lens.Prime("p", "Name", 135.5, .95, 64.0, LensDistanceUnit.Feet),
+            Lens.Zoom("z", "Zoom", 48.0, 3.5, 217.0, 4.5, 45.0, LensDistanceUnit.Meters),
             Lens.Prime("extreme", focalLengthMm = Double.MAX_VALUE, maxAperture = Double.MIN_VALUE))
         for (lens in lenses) assertEquals(lens, LensInputValidator.validate(LensDraft.from(lens)).lens)
     }

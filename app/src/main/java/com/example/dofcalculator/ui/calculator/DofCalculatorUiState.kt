@@ -5,6 +5,7 @@ import com.example.dofcalculator.calculation.FocusDistanceScale
 import com.example.dofcalculator.model.DepthOfFieldResult
 import com.example.dofcalculator.model.FrameFormat
 import com.example.dofcalculator.settings.DistanceUnit
+import com.example.dofcalculator.settings.distanceUnit
 import com.example.dofcalculator.settings.DistanceRounding
 import com.example.dofcalculator.settings.AppLanguage
 import com.example.dofcalculator.settings.CalculatorMode
@@ -76,6 +77,10 @@ data class DofCalculatorUiState(
     val cameraLensKit: com.example.dofcalculator.model.CameraLensKit
         get() = presets.lensKitsByCameraId[presets.selectedCameraId]
             ?: com.example.dofcalculator.model.CameraLensKit()
+    val selectedLens: com.example.dofcalculator.model.Lens? get() = cameraLensKit.selectedLens
+    val activeLens: com.example.dofcalculator.model.Lens? get() = cameraLensKit.activeLens
+    val effectiveFocusDistanceUnit: DistanceUnit
+        get() = activeLens?.distanceScaleUnit?.distanceUnit() ?: distanceUnit
     val showDiffractionWarning: Boolean get() = diffractionSettings.warningsEnabled &&
         diffractionResult?.level?.let { it != com.example.dofcalculator.model.DiffractionLevel.NONE } == true
     val showCloseFocusWarning: Boolean get() = closeFocusWarningsEnabled &&

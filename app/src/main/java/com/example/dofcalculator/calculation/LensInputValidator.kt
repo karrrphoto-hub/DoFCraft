@@ -23,8 +23,10 @@ object LensInputValidator {
         if (closed != null && listOfNotNull(a1, a2).any { closed < it })
             errors[LensField.MIN_APERTURE] = LensInputError.APERTURE_RANGE
         if (errors.isNotEmpty() || draft.id.isBlank()) return LensInputValidation(errors = errors)
-        val lens = if (prime) Lens.Prime(draft.id, draft.name.trim(), f1!!, a1!!, closed)
-            else Lens.Zoom(draft.id, draft.name.trim(), f1!!, a1!!, f2!!, a2!!, closed)
+        val lens = if (prime) Lens.Prime(draft.id, draft.name.trim(), f1!!, a1!!, closed,
+            draft.distanceScaleUnit)
+            else Lens.Zoom(draft.id, draft.name.trim(), f1!!, a1!!, f2!!, a2!!, closed,
+                draft.distanceScaleUnit)
         return LensInputValidation(lens)
     }
 }

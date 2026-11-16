@@ -19,6 +19,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.dofcalculator.R
 import com.example.dofcalculator.model.CameraProfile
+import com.example.dofcalculator.model.CalculatedDistance
 import com.example.dofcalculator.model.FrameFormat
 import com.example.dofcalculator.model.Lens
 import java.util.Locale
@@ -54,6 +55,7 @@ internal fun PresetManagementDialogs(
     onAddLens: () -> Unit = {},
     onEditLens: (String) -> Unit = {},
     onDeleteLens: (String) -> Unit = {},
+    focusDistance: CalculatedDistance? = null,
 ) {
     when {
         state.storageError -> AlertDialog(
@@ -81,7 +83,8 @@ internal fun PresetManagementDialogs(
             onCameraDimensionsChanged, onCustomFormatChanged,
             onSaveCamera, onCancelCamera,
             state.lensKitsByCameraId[state.cameraEditor.cameraId]?.lenses.orEmpty(),
-            onAddLens, onEditLens, onDeleteLens)
+            onAddLens, onEditLens, onDeleteLens,
+            focusDistance.takeIf { state.cameraEditor.cameraId == state.selectedCameraId })
         state.isManagerVisible -> {
             var query by rememberSaveable { mutableStateOf("") }
             val names = state.cameras.map { camera ->
@@ -112,6 +115,7 @@ internal fun PresetManagementDialogs(
                                                 role = Role.RadioButton,
                                                 onClick = { onSelectCamera(camera.id); onCloseManager() })
                                             .padding(vertical = 8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         RadioButton(selected = state.selectedCameraId == camera.id, onClick = null)
@@ -126,7 +130,8 @@ internal fun PresetManagementDialogs(
                                     val lenses = state.lensKitsByCameraId[camera.id]?.lenses.orEmpty()
                                     if (lenses.isNotEmpty() || !camera.isBuiltIn) {
                                         CameraLensDescriptions(lenses,
-                                            Modifier.fillMaxWidth().padding(start = 48.dp, bottom = 8.dp))
+                                            Modifier.fillMaxWidth().padding(start = 48.dp, bottom = 8.dp),
+                                            focusDistance.takeIf { camera.id == state.selectedCameraId })
                                     }
                                     if (!camera.isBuiltIn) {
                                         FlowRow(
@@ -172,6 +177,7 @@ private fun CameraEditorDialog(
     onAddLens: () -> Unit,
     onEditLens: (String) -> Unit,
     onDeleteLens: (String) -> Unit,
+    focusDistance: CalculatedDistance? = null,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     AlertDialog(
@@ -222,7 +228,8 @@ private fun CameraEditorDialog(
                 }
                 HorizontalDivider()
                 CameraLensesSection(lenses, canAdd = editor.cameraId != null,
-                    onAdd = onAddLens, onEdit = onEditLens, onDelete = onDeleteLens)
+                    onAdd = onAddLens, onEdit = onEditLens, onDelete = onDeleteLens,
+                    focusDistance = focusDistance)
                 if (editor.cameraId == null)
                     Text(stringResource(R.string.lens_save_camera_first), style = MaterialTheme.typography.bodySmall)
             }

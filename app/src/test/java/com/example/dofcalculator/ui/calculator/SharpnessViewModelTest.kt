@@ -34,7 +34,7 @@ class SharpnessViewModelTest {
         }
     }
 
-    @Test fun `switching methods keeps individual values and camera changes keep custom criterion`() {
+    @Test fun `switching methods keeps individual values and camera changes select Standard`() {
         val vm = DofCalculatorViewModel()
         vm.onSharpnessModeSelected(SharpnessCriterionMode.PIXEL_BASED)
         vm.onSharpnessFieldChanged(SharpnessField.MEGAPIXELS, "45,7")
@@ -51,8 +51,9 @@ class SharpnessViewModelTest {
         assertEquals(2.0, vm.uiState.sharpness.pixelBlur, 0.0)
         vm.onCircleOfConfusionChanged("0.00876")
         vm.onCameraProfileSelected("builtin.6x6")
-        assertEquals(SharpnessCriterionMode.CUSTOM, vm.uiState.sharpness.mode)
-        assertEquals(.00876, vm.uiState.effectiveCoCMm!!, 0.0)
+        assertEquals(SharpnessCriterionMode.STANDARD, vm.uiState.sharpness.mode)
+        assertEquals(.053, vm.uiState.effectiveCoCMm!!, 0.0)
+        assertEquals(.00876, vm.uiState.sharpness.customCoCmm, 0.0)
         assertEquals(45.0, vm.uiState.sharpness.printWidthCm, 0.0)
         assertEquals(PrintPlacement.FIT, vm.uiState.sharpness.printPlacement)
     }

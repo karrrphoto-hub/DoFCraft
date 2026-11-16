@@ -17,5 +17,6 @@ interface PresetRepository {
     suspend fun selectCamera(cameraId: String)
     suspend fun saveLens(cameraId: String, lens: com.example.dofcalculator.model.Lens)
     suspend fun deleteLens(cameraId: String, lensId: String)
+    suspend fun selectLens(cameraId: String, lensId: String)
     suspend fun setShowAllPresets(cameraId: String, focalLengths: Boolean, enabled: Boolean)
 }

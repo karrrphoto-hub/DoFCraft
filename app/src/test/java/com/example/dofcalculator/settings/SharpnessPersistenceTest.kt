@@ -1,9 +1,13 @@
 package com.example.dofcalculator.settings
 
 import androidx.datastore.preferences.core.*
+import com.example.dofcalculator.data.InMemoryPresetRepository
 import com.example.dofcalculator.model.*
+import com.example.dofcalculator.ui.calculator.DofCalculatorViewModel
 import java.io.File
 import java.nio.file.Files
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
 import org.junit.Assert.*
@@ -90,6 +94,50 @@ class SharpnessPersistenceTest {
             assertEquals(legacy, data.data.first()[stringPreferencesKey("sharpness_settings_v1")])
             assertEquals(AppLanguage.Russian, restored.language)
         } finally { job.cancelAndJoin(); dir.deleteRecursively() }
+    }
+
+    @Test fun `camera switch persists Standard through a real settings DataStore restart`() = runBlocking {
+        val dir = Files.createTempDirectory("camera-criterion-restart").toFile()
+        val file = File(dir, "settings.preferences_pb")
+        var storeJob = SupervisorJob()
+        var vmJob = SupervisorJob()
+        fun store() = PreferenceDataStoreFactory.create(
+            scope = CoroutineScope(storeJob + Dispatchers.IO), produceFile = { file })
+        val cameras = InMemoryPresetRepository()
+        val custom = SharpnessSettings(mode = SharpnessCriterionMode.CUSTOM,
+            customCoCmm = .00876, megapixels = 60.0)
+        try {
+            var repo = DataStoreAppSettingsRepository(store())
+            repo.saveSharpnessSettings(custom)
+            val first = DofCalculatorViewModel(cameras, repo,
+                CoroutineScope(vmJob + Dispatchers.Unconfined))
+            withTimeout(5.seconds) {
+                while (first.uiState.sharpness != custom) delay(5.milliseconds)
+            }
+            first.onCameraProfileSelected("builtin.8x10")
+            val expected = custom.copy(mode = SharpnessCriterionMode.STANDARD)
+            withTimeout(5.seconds) { repo.settings.first { it.sharpness == expected } }
+            assertEquals(.220, first.uiState.effectiveCoCMm!!, 0.0)
+            vmJob.cancelAndJoin()
+            storeJob.cancelAndJoin()
+
+            storeJob = SupervisorJob()
+            vmJob = SupervisorJob()
+            repo = DataStoreAppSettingsRepository(store())
+            assertEquals(expected, repo.settings.first().sharpness)
+            val restarted = DofCalculatorViewModel(cameras, repo,
+                CoroutineScope(vmJob + Dispatchers.Unconfined))
+            withTimeout(5.seconds) {
+                while (restarted.uiState.presets.selectedCameraId != "builtin.8x10" ||
+                    restarted.uiState.sharpness != expected) delay(5.milliseconds)
+            }
+            assertEquals(.220, restarted.uiState.effectiveCoCMm!!, 0.0)
+            assertEquals(.00876, restarted.uiState.sharpness.customCoCmm, 0.0)
+        } finally {
+            vmJob.cancelAndJoin()
+            storeJob.cancelAndJoin()
+            dir.deleteRecursively()
+        }
     }
 
     @Test fun `settings codec safely handles corrupted records`() {

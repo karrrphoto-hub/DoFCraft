@@ -22,6 +22,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.dofcalculator.R
 import com.example.dofcalculator.model.*
+import com.example.dofcalculator.settings.DistanceUnit
+import com.example.dofcalculator.settings.distanceUnit
+import com.example.dofcalculator.settings.lensDistanceReading
+import com.example.dofcalculator.settings.lensDistanceUnit
 import java.math.BigDecimal
 import java.text.DecimalFormatSymbols
 import java.util.Locale
@@ -70,6 +74,7 @@ internal fun CameraLensDialogs(
     onSave: () -> Unit,
     onCancelEditor: () -> Unit,
     onDismissError: () -> Unit,
+    onDistanceUnit: (LensDistanceUnit) -> Unit = {},
 ) {
     val manager = state.lensManager
     val camera = state.presets.cameras.firstOrNull { it.id == manager.cameraId } ?: return
@@ -88,7 +93,8 @@ internal fun CameraLensDialogs(
                 pending.name.ifBlank { lensSummary(pending) })) },
             confirmButton = { TextButton(onClick = onConfirmDelete) { Text(stringResource(R.string.delete)) } },
             dismissButton = { TextButton(onClick = onCancelDelete) { Text(stringResource(R.string.cancel)) } })
-        manager.editor != null -> LensEditorDialog(manager.editor, onName, onZoom, onField, onSave, onCancelEditor)
+        manager.editor != null -> LensEditorDialog(manager.editor, onName, onZoom, onField, onSave, onCancelEditor,
+            onDistanceUnit, state.focusDistance.takeIf { camera.id == state.presets.selectedCameraId })
         else -> AlertDialog(
             onDismissRequest = onClose,
             title = { Column { Text(stringResource(R.string.lenses_title))
@@ -99,7 +105,8 @@ internal fun CameraLensDialogs(
                     if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses))
                     LazyColumn(Modifier.heightIn(max = 400.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(lenses, key = { it.id }) { lens ->
-                            CameraLensDetails(lens, onEdit, onDelete)
+                            CameraLensDetails(lens, onEdit, onDelete,
+                                state.focusDistance.takeIf { camera.id == state.presets.selectedCameraId })
                         }
                     }
                 }
@@ -113,7 +120,11 @@ internal fun CameraLensDialogs(
 
 /** Read-only kit information in the camera picker; no nested lens-management action. */
 @Composable
-internal fun CameraLensDescriptions(lenses: List<Lens>, modifier: Modifier = Modifier) {
+internal fun CameraLensDescriptions(
+    lenses: List<Lens>,
+    modifier: Modifier = Modifier,
+    focusDistance: CalculatedDistance? = null,
+) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -123,6 +134,7 @@ internal fun CameraLensDescriptions(lenses: List<Lens>, modifier: Modifier = Mod
                 else stringResource(R.string.lens_named_summary, lens.name, summary),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+            LensScaleInformation(lens, focusDistance)
         }
     }
 }
@@ -134,11 +146,12 @@ internal fun CameraLensesSection(
     onAdd: () -> Unit,
     onEdit: (String) -> Unit,
     onDelete: (String) -> Unit,
+    focusDistance: CalculatedDistance? = null,
 ) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.lenses_title), style = MaterialTheme.typography.titleMedium)
         if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses), style = MaterialTheme.typography.bodySmall)
-        lenses.forEach { lens -> CameraLensDetails(lens, onEdit, onDelete) }
+        lenses.forEach { lens -> CameraLensDetails(lens, onEdit, onDelete, focusDistance) }
         TextButton(onClick = onAdd, enabled = canAdd, modifier = Modifier.heightIn(min = 48.dp)) {
             Text(stringResource(R.string.add_lens))
         }
@@ -146,11 +159,15 @@ internal fun CameraLensesSection(
 }
 
 @Composable
-private fun CameraLensDetails(lens: Lens, onEdit: (String) -> Unit, onDelete: (String) -> Unit) {
+private fun CameraLensDetails(
+    lens: Lens, onEdit: (String) -> Unit, onDelete: (String) -> Unit,
+    focusDistance: CalculatedDistance? = null,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (lens.name.isNotBlank()) Text(lens.name, style = MaterialTheme.typography.titleSmall,
             maxLines = 2, overflow = TextOverflow.Ellipsis)
         Text(lensSummary(lens), style = MaterialTheme.typography.bodyMedium)
+        LensScaleInformation(lens, focusDistance)
         lens.minAperture?.let {
             Text(stringResource(R.string.lens_closed_value,
                 formatPresetNumber(it, LocalResources.current.configuration.locales[0])),
@@ -165,6 +182,56 @@ private fun CameraLensDetails(lens: Lens, onEdit: (String) -> Unit, onDelete: (S
 }
 
 @Composable
+private fun LensScaleInformation(lens: Lens, focusDistance: CalculatedDistance?) {
+    val display = currentDistanceDisplay()
+    val scale = lens.distanceScaleUnit ?: display.unit.lensDistanceUnit()
+    val unit = scale.distanceUnit()
+    fun unitLabel(unit: DistanceUnit): Int = when (unit) {
+        DistanceUnit.Feet -> R.string.lens_scale_feet_short
+        DistanceUnit.Meters -> R.string.meters_unit
+        DistanceUnit.Centimeters -> R.string.unit_cm
+        DistanceUnit.Inches -> R.string.unit_inch
+    }
+    Text(stringResource(R.string.lens_distance_scale_value, stringResource(unitLabel(unit))),
+        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    val distanceText = when (focusDistance) {
+        CalculatedDistance.Infinity -> "∞"
+        is CalculatedDistance.Finite -> lensDistanceReading(focusDistance.meters, scale,
+            display.unit, display.locale)?.let { reading ->
+            if (reading.reference == null)
+                stringResource(R.string.focus_distance_with_unit, reading.value, stringResource(unitLabel(unit)))
+            else stringResource(R.string.lens_distance_dual, reading.value, stringResource(unitLabel(unit)),
+                reading.reference, stringResource(unitLabel(display.unit)))
+        }
+        null -> null
+    }
+    distanceText?.let {
+        Text(stringResource(R.string.lens_focus_distance_value, it),
+            style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+@Composable
+private fun LensDistanceUnitControl(editor: LensEditorUiState, onChange: (LensDistanceUnit) -> Unit) {
+    val selected = editor.draft.distanceScaleUnit ?: currentDistanceDisplay().unit.lensDistanceUnit()
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.lens_distance_scale), style = MaterialTheme.typography.bodyMedium)
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            LensDistanceUnit.entries.forEachIndexed { index, unit ->
+                SegmentedButton(selected = selected == unit, onClick = { onChange(unit) },
+                    enabled = !editor.isSaving,
+                    shape = SegmentedButtonDefaults.itemShape(index, LensDistanceUnit.entries.size)) {
+                    Text(stringResource(if (unit == LensDistanceUnit.Meters)
+                        R.string.lens_scale_meters else R.string.lens_scale_feet))
+                }
+            }
+        }
+        Text(stringResource(R.string.lens_distance_scale_help),
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
 private fun LensEditorDialog(
     editor: LensEditorUiState,
     onName: (String) -> Unit,
@@ -172,12 +239,14 @@ private fun LensEditorDialog(
     onField: (LensField, String) -> Unit,
     onSave: () -> Unit,
     onCancel: () -> Unit,
+    onDistanceUnit: (LensDistanceUnit) -> Unit,
+    focusDistance: CalculatedDistance?,
 ) {
     AlertDialog(
         onDismissRequest = onCancel,
         title = { Text(stringResource(if (editor.isNew) R.string.add_lens else R.string.edit_lens)) },
         text = { Column(Modifier.heightIn(max = 480.dp).verticalScroll(rememberScrollState())) {
-            LensEditorContent(editor, onName, onZoom, onField)
+            LensEditorContent(editor, onName, onZoom, onField, onDistanceUnit, focusDistance)
         } },
         confirmButton = { TextButton(onClick = onSave, enabled = !editor.isSaving) { Text(stringResource(R.string.save)) } },
         dismissButton = { TextButton(onClick = onCancel, enabled = !editor.isSaving) { Text(stringResource(R.string.cancel)) } })
@@ -189,6 +258,8 @@ internal fun LensEditorContent(
     onName: (String) -> Unit,
     onZoom: (Boolean) -> Unit,
     onField: (LensField, String) -> Unit,
+    onDistanceUnit: (LensDistanceUnit) -> Unit = {},
+    focusDistance: CalculatedDistance? = null,
 ) {
     val zoom = editor.draft.type == LensType.ZOOM
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -200,6 +271,7 @@ internal fun LensEditorContent(
             Checkbox(checked = zoom, onCheckedChange = null)
             Text(stringResource(R.string.zoom_lens), Modifier.weight(1f))
         }
+        LensDistanceUnitControl(editor, onDistanceUnit)
         if (zoom) {
             LensFieldPair(editor, LensField.WIDE_FOCAL, LensField.WIDE_APERTURE, onField)
             LensFieldPair(editor, LensField.TELE_FOCAL, LensField.TELE_APERTURE, onField)
@@ -210,6 +282,7 @@ internal fun LensEditorContent(
                 Column(Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text(stringResource(R.string.lens_preview), style = MaterialTheme.typography.labelMedium)
                     Text(lensSummary(lens), style = MaterialTheme.typography.bodyMedium)
+                    LensScaleInformation(lens, focusDistance)
                 }
             }
         }
@@ -267,16 +340,18 @@ private fun LensNumber(
     }
 }
 
-@androidx.compose.ui.tooling.preview.Preview(name = "Lens editor English", widthDp = 360, locale = "en")
-@androidx.compose.ui.tooling.preview.Preview(name = "Lens editor Russian large", widthDp = 320, heightDp = 1050, locale = "ru", fontScale = 1.3f)
+@androidx.compose.ui.tooling.preview.Preview(name = "Lens editor English", widthDp = 360, heightDp = 1200, locale = "en")
+@androidx.compose.ui.tooling.preview.Preview(name = "Lens editor Russian large", widthDp = 320, heightDp = 1400, locale = "ru", fontScale = 1.3f)
 @Composable
 private fun LensEditorPreview() {
-    val draft = LensDraft.from(Lens.Zoom("preview", "Nikkor 18–55", 18.0, 3.5, 55.0, 5.6, 22.0))
+    val draft = LensDraft.from(Lens.Zoom("preview", "Nikkor 18–55", 18.0, 3.5, 55.0, 5.6, 22.0,
+        LensDistanceUnit.Feet))
     com.example.dofcalculator.ui.theme.DOFCalculatorTheme(dynamicColor = false) {
         Surface {
             Box(Modifier.padding(16.dp)) {
                 LensEditorContent(LensEditorUiState(draft,
-                    com.example.dofcalculator.calculation.LensInputValidator.validate(draft)), {}, {}, { _, _ -> })
+                    com.example.dofcalculator.calculation.LensInputValidator.validate(draft)), {}, {}, { _, _ -> },
+                    focusDistance = CalculatedDistance.Finite(12.192))
             }
         }
     }

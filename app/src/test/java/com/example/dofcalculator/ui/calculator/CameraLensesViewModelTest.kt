@@ -27,7 +27,7 @@ class CameraLensesViewModelTest {
         vm.onSaveLens() // a repeated click never creates a second record
     }
 
-    @Test fun `all lenses form one sorted kit and Show All switches stay independent per camera`() {
+    @Test fun `selected zoom supplies both preset rows and Ignore Lens Profile bypasses the complete profile`() {
         val vm = vm()
         vm.onOpenCameraLenses(custom.id)
         vm.onAddLens()
@@ -39,24 +39,24 @@ class CameraLensesViewModelTest {
         addPrime(vm, "50", "1.4", "16")
         addPrime(vm, "200", "4", "32")
         assertEquals(3, vm.uiState.cameraLensKit.lenses.size)
-        assertEquals(listOf(24.0, 28.0, 35.0, 50.0, 55.0, 58.0, 85.0, 90.0, 105.0, 120.0, 200.0),
+        assertEquals(listOf(24.0, 28.0, 35.0, 50.0, 55.0, 58.0, 85.0, 90.0, 105.0, 120.0),
             vm.uiState.focalLengthPresets)
-        assertEquals(listOf(1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0, 22.0, 32.0), vm.uiState.aperturePresets)
+        assertEquals(listOf(4.0, 5.6, 8.0, 11.0, 16.0, 22.0), vm.uiState.aperturePresets)
         val limited = vm.uiState.focalLengthPresets
         vm.onShowAllFocalLengths(true)
         assertTrue(vm.uiState.focalLengthPresets.containsAll(CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble)))
-        assertFalse(vm.uiState.aperturePresets.contains(1.0))
+        assertTrue(vm.uiState.aperturePresets.contains(1.0))
         vm.onShowAllApertures(true)
         assertTrue(vm.uiState.aperturePresets.contains(1.0))
         vm.onShowAllFocalLengths(false)
         assertEquals(limited, vm.uiState.focalLengthPresets)
-        assertTrue(vm.uiState.cameraLensKit.showAllApertures)
+        assertFalse(vm.uiState.cameraLensKit.ignoreLensProfile)
         vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
         assertEquals(CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble), vm.uiState.focalLengthPresets)
         assertEquals(ApertureIncrements.FullStop.apertures, vm.uiState.aperturePresets)
         vm.onCameraProfileSelected(custom.id)
         assertEquals(limited, vm.uiState.focalLengthPresets)
-        assertTrue(vm.uiState.cameraLensKit.showAllApertures)
+        assertFalse(vm.uiState.cameraLensKit.ignoreLensProfile)
         val restarted = vm()
         assertEquals(vm.uiState.cameraLensKit, restarted.uiState.cameraLensKit)
         assertEquals(limited, restarted.uiState.focalLengthPresets)
@@ -165,7 +165,7 @@ class CameraLensesViewModelTest {
         assertEquals(listOf(58.0), vm.uiState.focalLengthPresets)
     }
 
-    @Test fun `camera activation selects the exact minimum across primes and zooms regardless of Show All`() = runBlocking {
+    @Test fun `camera activation preserves focal length when lens profiles are ignored`() = runBlocking {
         val vm = vm()
         cameras.saveLens(custom.id, Lens.Prime("prime", focalLengthMm = 58.0, maxAperture = 1.7))
         cameras.saveLens(custom.id, Lens.Zoom("zoom", minFocalLengthMm = 48.25, maxFocalLengthMm = 217.0,
@@ -179,18 +179,18 @@ class CameraLensesViewModelTest {
         vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
         assertEquals("300", vm.uiState.focalLengthText)
         vm.onCameraProfileSelected(custom.id)
-        assertEquals("48.25", vm.uiState.focalLengthText)
-        assertEquals(48.25, vm.uiState.selectedFocalLengthPresetMm!!, 0.0)
+        assertEquals("300", vm.uiState.focalLengthText)
+        assertEquals(300.0, vm.uiState.selectedFocalLengthPresetMm!!, 0.0)
         assertEquals(before.apertureText, vm.uiState.apertureText)
         assertEquals(before.focusDistance, vm.uiState.focusDistance)
-        assertEquals(before.sharpness, vm.uiState.sharpness)
+        assertEquals(before.sharpness.copy(mode = SharpnessCriterionMode.STANDARD), vm.uiState.sharpness)
         assertEquals(before.diffractionSettings, vm.uiState.diffractionSettings)
-        assertEquals(before.effectiveCoCMm, vm.uiState.effectiveCoCMm)
+        assertEquals(.030, vm.uiState.effectiveCoCMm!!, 0.0)
         vm.onFocusAtInfinity()
         vm.onFocalLengthChanged("500")
         vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
         vm.onCameraProfileSelected(custom.id)
-        assertEquals("48.25", vm.uiState.focalLengthText)
+        assertEquals("500", vm.uiState.focalLengthText)
         assertSame(CalculatedDistance.Infinity, vm.uiState.focusDistance)
     }
 
@@ -207,7 +207,13 @@ class CameraLensesViewModelTest {
         val restarted = vm()
         assertEquals("300", restarted.uiState.focalLengthText)
         restarted.onCameraProfileSelected(custom.id)
-        assertEquals("20", restarted.uiState.focalLengthText)
+        assertEquals("300", restarted.uiState.focalLengthText)
+        restarted.onIgnoreLensProfileChanged(false)
+        restarted.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
+        restarted.onCameraProfileSelected(custom.id)
+        assertEquals("58", restarted.uiState.focalLengthText)
+        val wide = restarted.uiState.cameraLensKit.lenses.single { (it as Lens.Prime).focalLengthMm == 20.0 }
+        restarted.onLensSelected(wide.id)
         restarted.onFocalLengthChanged("300")
         restarted.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
         restarted.onCameraProfileSelected(custom.id)

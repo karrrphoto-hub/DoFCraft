@@ -1,10 +1,12 @@
 package com.example.dofcalculator.model
 
-/** Input shortcuts only: no lens is selected or passed to the optical calculations. */
+/** Input shortcuts and distance-scale metadata; no lens is passed to optical calculations. */
 sealed interface Lens {
     val id: String
     val name: String
     val minAperture: Double?
+    /** Null in older records means use the app's current distance-unit family. */
+    val distanceScaleUnit: LensDistanceUnit?
 
     data class Prime(
         override val id: String,
@@ -12,6 +14,7 @@ sealed interface Lens {
         val focalLengthMm: Double,
         val maxAperture: Double,
         override val minAperture: Double? = null,
+        override val distanceScaleUnit: LensDistanceUnit? = null,
     ) : Lens {
         init {
             require(id.isNotBlank())
@@ -28,6 +31,7 @@ sealed interface Lens {
         val maxFocalLengthMm: Double,
         val maxApertureAtMaxFocal: Double,
         override val minAperture: Double? = null,
+        override val distanceScaleUnit: LensDistanceUnit? = null,
     ) : Lens {
         init {
             require(id.isNotBlank())
@@ -47,6 +51,16 @@ data class CameraLensKit(
     val lenses: List<Lens> = emptyList(),
     val showAllFocalLengths: Boolean = false,
     val showAllApertures: Boolean = false,
+    val selectedLensId: String? = null,
 ) {
     init { require(lenses.map { it.id }.distinct().size == lenses.size) }
+
+    /** Reuses the previously saved Show All Focal Lengths flag, now a complete profile bypass. */
+    val ignoreLensProfile: Boolean get() = showAllFocalLengths
+    val selectedLens: Lens? get() = lenses.firstOrNull { it.id == selectedLensId }
+        ?: lenses.minByOrNull { lens -> when (lens) {
+            is Lens.Prime -> lens.focalLengthMm
+            is Lens.Zoom -> lens.minFocalLengthMm
+        } }
+    val activeLens: Lens? get() = selectedLens.takeUnless { ignoreLensProfile }
 }

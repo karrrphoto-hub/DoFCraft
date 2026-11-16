@@ -69,6 +69,7 @@ class VideoSharpnessViewModelTest {
     @Test fun `camera changes recalculate auto area and incompatible manual dimensions require correction`() {
         val vm = video()
         vm.onCameraProfileSelected("fujifilm_gfx")
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.VIDEO_BASED)
         assertEquals(43.8, vm.uiState.videoResult!!.activeArea.widthMm, 1e-12)
         assertEquals(24.6375, vm.uiState.videoResult!!.activeArea.heightMm, 1e-12)
         vm.onVideoFieldChanged(VideoField.ACTIVE_WIDTH, "43.8")
@@ -77,6 +78,9 @@ class VideoSharpnessViewModelTest {
         assertNotNull(vm.uiState.result)
         val fullFrame = vm.uiState.presets.cameras.first { it.frameFormat == FrameFormat.FullFrame35Mm }
         vm.onCameraProfileSelected(fullFrame.id)
+        assertEquals(SharpnessCriterionMode.STANDARD, vm.uiState.sharpness.mode)
+        assertEquals(.030, vm.uiState.effectiveCoCMm!!, 0.0)
+        vm.onSharpnessModeSelected(SharpnessCriterionMode.VIDEO_BASED)
         assertNull(vm.uiState.effectiveCoCMm)
         assertNull(vm.uiState.result)
         assertNull(vm.uiState.distanceScale)

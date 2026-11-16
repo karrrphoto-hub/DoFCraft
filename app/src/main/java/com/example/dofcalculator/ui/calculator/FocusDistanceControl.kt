@@ -47,7 +47,7 @@ internal fun FocusDistanceControl(
     val editable = state.isFocusDistanceEditable
     val atInfinity = state.focusDistance == CalculatedDistance.Infinity
     val fieldDescription = stringResource(R.string.focus_distance_title)
-    val display = DistanceDisplay(state.distanceUnit, state.distanceRounding,
+    val display = DistanceDisplay(state.effectiveFocusDistanceUnit, state.distanceRounding,
         LocalResources.current.configuration.locales[0])
     val inputText = if (state.calculatorMode == com.example.dofcalculator.settings.CalculatorMode.Hyperfocal)
         state.result?.hyperfocalDistanceMeters?.let(display::number).orEmpty()
@@ -57,7 +57,7 @@ internal fun FocusDistanceControl(
     val textStyle = MaterialTheme.typography.bodyLarge
     val textMeasurer = rememberTextMeasurer()
     val density = LocalDensity.current
-    val unitLabel = distanceUnitLabel(state.distanceUnit)
+    val unitLabel = distanceUnitLabel(state.effectiveFocusDistanceUnit)
     val desiredWidth = with(density) {
         val valueWidth = textMeasurer.measure(
             inputText.ifEmpty { "∞" }, style = textStyle, softWrap = false,
@@ -110,6 +110,15 @@ internal fun FocusDistanceControl(
                 ),
             )
             }
+            val scaleUnit = state.activeLens?.distanceScaleUnit
+            val reference = (state.focusDistance as? CalculatedDistance.Finite)?.let { distance ->
+                scaleUnit?.let { com.example.dofcalculator.settings.lensDistanceReading(
+                    distance.meters, it, state.distanceUnit, display.locale)?.reference }
+            }
+            if (reference != null) Text(stringResource(R.string.lens_reference_distance,
+                reference, distanceUnitLabel(state.distanceUnit)),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (state.focusDistanceHasError) {
                 Text(
                     text = stringResource(R.string.input_number_error),

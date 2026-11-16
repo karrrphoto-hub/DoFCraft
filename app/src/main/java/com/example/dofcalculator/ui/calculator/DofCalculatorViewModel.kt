@@ -24,6 +24,7 @@ import com.example.dofcalculator.model.PrintPlacement
 import com.example.dofcalculator.calculation.SharpnessCriterionCalculator
 import com.example.dofcalculator.calculation.StandardCoCResolver
 import com.example.dofcalculator.settings.DistanceUnit
+import com.example.dofcalculator.settings.lensDistanceUnit
 import com.example.dofcalculator.settings.DistanceRounding
 import com.example.dofcalculator.settings.ApertureIncrements
 import com.example.dofcalculator.settings.AppLanguage
@@ -108,14 +109,15 @@ class DofCalculatorViewModel internal constructor(
         val camera = uiState.presets.cameras.firstOrNull { it.id == uiState.lensManager.cameraId } ?: return
         if (camera.isBuiltIn) return
         uiState = uiState.copy(lensManager = uiState.lensManager.copy(
-            editor = LensEditorUiState(LensDraft(UUID.randomUUID().toString()))))
+            editor = LensEditorUiState(LensDraft(UUID.randomUUID().toString(),
+                distanceScaleUnit = uiState.distanceUnit.lensDistanceUnit()))))
     }
 
     fun onEditLens(lensId: String) {
         val cameraId = uiState.lensManager.cameraId ?: return
         val lens = uiState.presets.lensKitsByCameraId[cameraId]?.lenses
             ?.firstOrNull { it.id == lensId } ?: return
-        val draft = LensDraft.from(lens)
+        val draft = LensDraft.from(lens, uiState.distanceUnit.lensDistanceUnit())
         uiState = uiState.copy(lensManager = uiState.lensManager.copy(editor =
             LensEditorUiState(draft, com.example.dofcalculator.calculation.LensInputValidator.validate(draft),
                 isNew = false)))
@@ -128,6 +130,9 @@ class DofCalculatorViewModel internal constructor(
             draft = draft, validation = com.example.dofcalculator.calculation.LensInputValidator.validate(draft))))
     }
     fun onLensNameChanged(value: String) = updateLensDraft { copy(name = value) }
+    fun onLensDistanceUnitChanged(unit: LensDistanceUnit) = updateLensDraft {
+        copy(distanceScaleUnit = unit)
+    }
     fun onLensZoomChanged(zoom: Boolean) = updateLensDraft {
         copy(type = if (zoom) LensType.ZOOM else LensType.PRIME)
     }
@@ -172,11 +177,36 @@ class DofCalculatorViewModel internal constructor(
         onCancelDeleteLens()
         launchRepositoryOperation { presetRepository.deleteLens(cameraId, id) }
     }
-    fun onShowAllFocalLengths(enabled: Boolean) = savePresetVisibility(true, enabled)
-    fun onShowAllApertures(enabled: Boolean) = savePresetVisibility(false, enabled)
-    private fun savePresetVisibility(focalLengths: Boolean, enabled: Boolean) {
+    // Both parameter dialogs expose the same complete lens-profile bypass.
+    fun onShowAllFocalLengths(enabled: Boolean) = onIgnoreLensProfileChanged(enabled)
+    fun onShowAllApertures(enabled: Boolean) = onIgnoreLensProfileChanged(enabled)
+
+    fun onIgnoreLensProfileChanged(enabled: Boolean) {
         val cameraId = uiState.presets.selectedCameraId ?: return
-        launchRepositoryOperation { presetRepository.setShowAllPresets(cameraId, focalLengths, enabled) }
+        val kit = uiState.cameraLensKit.copy(showAllFocalLengths = enabled)
+        uiState = recalculate(withSelectedCameraKit(kit))
+        launchRepositoryOperation { presetRepository.setShowAllPresets(cameraId, true, enabled) }
+    }
+
+    fun onLensSelected(lensId: String) {
+        val cameraId = uiState.presets.selectedCameraId ?: return
+        val lens = uiState.cameraLensKit.lenses.firstOrNull { it.id == lensId } ?: return
+        val range = com.example.dofcalculator.calculation.LensParameterRange.of(lens)
+        val kit = uiState.cameraLensKit.copy(selectedLensId = lensId, showAllFocalLengths = false)
+        uiState = recalculate(withSelectedCameraKit(kit).copy(
+            focalLengthText = range.focalLength(uiState.focalLengthText.toPositiveDecimalOrNull()).toPresetInput(),
+            apertureText = range.aperture(uiState.apertureText.toPositiveDecimalOrNull()).toPresetInput(),
+        ))
+        launchRepositoryOperation { presetRepository.selectLens(cameraId, lensId) }
+    }
+
+    private fun withSelectedCameraKit(kit: CameraLensKit): DofCalculatorUiState {
+        val cameraId = uiState.presets.selectedCameraId ?: return uiState
+        val updated = uiState.copy(presets = uiState.presets.copy(
+            lensKitsByCameraId = uiState.presets.lensKitsByCameraId + (cameraId to kit)))
+        return updated.copy(focusInputDraft = uiState.focusInputDraft.takeIf {
+            updated.effectiveFocusDistanceUnit == uiState.effectiveFocusDistanceUnit
+        })
     }
 
     fun onFrameFormatSelected(frameFormat: FrameFormat) {
@@ -274,8 +304,12 @@ class DofCalculatorViewModel internal constructor(
 
     fun onCameraProfileSelected(cameraId: String) {
         if (uiState.presets.cameras.none { it.id == cameraId }) return
+        val cameraChanged = cameraId != uiState.presets.selectedCameraId
+        val previousUnit = uiState.effectiveFocusDistanceUnit
         uiState = uiState.copy(presets = uiState.presets.copy(selectedCameraId = cameraId))
-        applySelectedCamera(activate = true)
+        if (uiState.effectiveFocusDistanceUnit != previousUnit)
+            uiState = uiState.copy(focusInputDraft = null)
+        applySelectedCamera(activate = true, resetSharpnessCriterion = cameraChanged)
         launchRepositoryOperation { presetRepository.selectCamera(cameraId) }
     }
 
@@ -328,7 +362,7 @@ class DofCalculatorViewModel internal constructor(
 
     fun onFocusDistanceInputChanged(value: String) {
         if (!uiState.isFocusDistanceEditable) return
-        val meters = value.toPositiveDecimalOrNull()?.let(uiState.distanceUnit::toMeters)
+        val meters = value.toPositiveDecimalOrNull()?.let(uiState.effectiveFocusDistanceUnit::toMeters)
             ?.takeIf { it.isFinite() && it > 0.0 }
         uiState = recalculate(uiState.copy(
             focusInputDraft = value,
@@ -676,6 +710,7 @@ class DofCalculatorViewModel internal constructor(
     }
 
     private fun onPresetLibraryChanged(library: PresetLibrary) {
+        val previousUnit = uiState.effectiveFocusDistanceUnit
         // Initial restoration keeps last-used optical inputs; subsequent camera switches activate the kit.
         val activate = libraryRestored && settingsRestored &&
             library.selectedCameraId != uiState.presets.selectedCameraId
@@ -691,26 +726,35 @@ class DofCalculatorViewModel internal constructor(
                 lensKitsByCameraId = library.lensKitsByCameraId,
             ),
         )
-        applySelectedCamera(activate = activate)
+        if (uiState.effectiveFocusDistanceUnit != previousUnit)
+            uiState = uiState.copy(focusInputDraft = null)
+        applySelectedCamera(activate = activate, resetSharpnessCriterion = activate)
     }
 
-    private fun applySelectedCamera(activate: Boolean = false) {
+    private fun applySelectedCamera(
+        activate: Boolean = false,
+        resetSharpnessCriterion: Boolean = false,
+    ) {
         val camera = uiState.presets.cameras.firstOrNull {
             it.id == uiState.presets.selectedCameraId
         } ?: return
-        if (settingsRestored && libraryRestored && !sharpnessMigrationComplete) {
-            // Keep the selected criterion and Custom slot unchanged. Legacy values remain
-            // archived and are imported only by an explicit action in the sharpness sheet.
-            sharpnessMigrationComplete = true
-            val currentSharpness = uiState.sharpness
-            launchSettingsOperation { appSettingsRepository.saveSharpnessSettings(currentSharpness) }
-        }
+        val migrateSharpness = settingsRestored && libraryRestored && !sharpnessMigrationComplete
+        if (migrateSharpness) sharpnessMigrationComplete = true
+        // Camera-ID changes select Standard; edits and restoration retain the chosen mode.
+        // Keep each criterion's parameters, including Custom CoC and incomplete drafts.
+        val sharpness = if (resetSharpnessCriterion)
+            uiState.sharpness.copy(mode = SharpnessCriterionMode.STANDARD)
+        else uiState.sharpness
         val minimumFocal = if (activate)
             com.example.dofcalculator.calculation.FocalLengthPresetsGenerator
-                .minimumFocalLengthMm(uiState.presets.lensKitsByCameraId[camera.id]?.lenses.orEmpty())
+                .minimumFocalLengthMm(uiState.activeLens?.let(::listOf).orEmpty())
         else null
         uiState = recalculate(uiState.copy(selectedFrameFormat = camera.frameFormat,
+            sharpness = sharpness,
             focalLengthText = minimumFocal?.toPresetInput() ?: uiState.focalLengthText))
+        if (sharpnessMigrationComplete && (resetSharpnessCriterion || migrateSharpness)) {
+            launchSettingsOperation { appSettingsRepository.saveSharpnessSettings(sharpness) }
+        }
     }
 
     private fun updateCameraEditor(
@@ -785,12 +829,12 @@ class DofCalculatorViewModel internal constructor(
     private fun recalculate(
         input: DofCalculatorUiState,
     ): DofCalculatorUiState {
-        val kit = input.cameraLensKit
+        val lenses = input.activeLens?.let(::listOf).orEmpty()
         val candidate = input.copy(
             focalLengthPresets = com.example.dofcalculator.calculation.FocalLengthPresetsGenerator.generate(
-                kit.lenses, CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble), kit.showAllFocalLengths),
+                lenses, CalculatorPresets.typicalFocalLengthsMm.map(Int::toDouble)),
             aperturePresets = com.example.dofcalculator.calculation.AperturePresetsGenerator.generate(
-                kit.lenses, input.apertureIncrements.apertures, kit.showAllApertures),
+                lenses, input.apertureIncrements.apertures),
         )
         if (candidate.focusDistanceText.toPositiveDecimalOrNull() != null) {
             lastValidFocusDistanceText = candidate.focusDistanceText

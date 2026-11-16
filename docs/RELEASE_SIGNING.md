@@ -68,6 +68,17 @@ The helper checks the manifest for debuggable/test-only flags, 16 KB ZIP alignme
 APK v2/v3 signatures and the actual signing certificate fingerprint. Independently
 audit the finished APK's manifest and contents before publishing.
 
+## Release 1.0.2
+
+VersionCode 3; signed with the same permanent production certificate as 1.0.1.
+APK: `DoF-Master-1.0.2.apk` (1,894,352 bytes).
+SHA-256: `1659576af86eaa836d78aab17a7766dd34f8dcf7a50924ddda15f76cbba75b81`.
+
+Adds per-camera lens selection, shared profile bypass, lens distance-scale units,
+dual hyperfocal readings and localized explanations. Preserves existing kit records.
+Build validation: JVM tests, Release lint, optimized Release build and signed APK
+launch on the emulator. Public distribution remains documentation plus APK/checksum.
+
 ## Upgrade from earlier private Debug builds
 
 Those APKs use the Android Debug certificate. Android cannot install the new

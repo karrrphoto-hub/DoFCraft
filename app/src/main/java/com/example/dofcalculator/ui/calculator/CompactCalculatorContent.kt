@@ -93,6 +93,7 @@ internal fun CompactCalculatorContent(
     onOpenCameraLenses: (String) -> Unit,
     onShowAllFocalLengths: (Boolean) -> Unit,
     onShowAllApertures: (Boolean) -> Unit,
+    onLensSelected: (String) -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     var editorName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -208,6 +209,7 @@ internal fun CompactCalculatorContent(
 
             ResultsInfographic(
                 result = uiState.result,
+                lensDistanceUnit = uiState.activeLens?.distanceScaleUnit,
                 focusDistanceMeters = uiState.focusDistanceMeters,
                 inputError = uiState.inputError,
                 calculatorMode = uiState.calculatorMode,
@@ -235,6 +237,7 @@ internal fun CompactCalculatorContent(
             onStepFocalLength = onStepFocalLength,
             onFocalLengthPresetSelected = onFocalLengthPresetSelected,
             onShowAllFocalLengths = onShowAllFocalLengths,
+            onLensSelected = onLensSelected,
             onDismiss = { editorName = null },
         )
         ParameterEditor.Aperture -> ApertureDialog(
@@ -315,12 +318,13 @@ private fun ParameterTile(
 }
 
 @Composable
-private fun ResultsInfographic(
+internal fun ResultsInfographic(
     result: DepthOfFieldResult?,
     focusDistanceMeters: Double?,
     inputError: DofInputError?,
     calculatorMode: CalculatorMode,
     focusAtInfinity: Boolean,
+    lensDistanceUnit: com.example.dofcalculator.model.LensDistanceUnit? = null,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -352,11 +356,20 @@ private fun ResultsInfographic(
 
             val formatter = currentDistanceDisplay()
             val metersUnit = distanceUnitLabel()
-            val hyperfocal = formatMeters(
-                result.hyperfocalDistanceMeters,
-                formatter,
-                metersUnit,
-            )
+            val primaryHyperfocal = formatMeters(
+                result.hyperfocalDistanceMeters, formatter, metersUnit)
+            val lensReading = lensDistanceUnit?.let { scale ->
+                com.example.dofcalculator.settings.lensDistanceReading(
+                    result.hyperfocalDistanceMeters, scale, formatter.unit, formatter.locale)
+            }
+            val hyperfocal = if (lensReading?.reference != null) {
+                val lensUnitLabel = stringResource(
+                    if (lensDistanceUnit == com.example.dofcalculator.model.LensDistanceUnit.Feet)
+                        R.string.lens_scale_feet_short else R.string.meters_unit)
+                stringResource(R.string.lens_distance_dual,
+                    formatter.number(result.hyperfocalDistanceMeters), metersUnit,
+                    lensReading.value, lensUnitLabel)
+            } else primaryHyperfocal
 
             val isDofMode = calculatorMode == CalculatorMode.DepthOfField
             Text(
@@ -423,6 +436,15 @@ private fun ResultsInfographic(
                     ),
                 )
             }
+            if (lensReading?.reference != null) {
+                Text(
+                    text = stringResource(
+                        if (lensDistanceUnit == com.example.dofcalculator.model.LensDistanceUnit.Feet)
+                            R.string.hyperfocal_lens_feet_help else R.string.hyperfocal_lens_meters_help),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
@@ -484,6 +506,7 @@ private fun FocalLengthDialog(
     onFocalLengthPresetSelected: (Double) -> Unit,
     onShowAllFocalLengths: (Boolean) -> Unit,
     onDismiss: () -> Unit,
+    onLensSelected: (String) -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -496,7 +519,7 @@ private fun FocalLengthDialog(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 FocalLengthControls(uiState, onFocalLengthChanged, onStepFocalLength,
-                    onFocalLengthPresetSelected, onShowAllFocalLengths)
+                    onFocalLengthPresetSelected, onShowAllFocalLengths, onLensSelected)
 
             }
         },
@@ -515,6 +538,7 @@ internal fun FocalLengthControls(
     onStepFocalLength: (Boolean) -> Unit,
     onFocalLengthPresetSelected: (Double) -> Unit,
     onShowAllFocalLengths: (Boolean) -> Unit = {},
+    onLensSelected: (String) -> Unit = {},
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(
@@ -544,8 +568,6 @@ internal fun FocalLengthControls(
                 modifier = Modifier.semantics { contentDescription = increaseLabel },
             )
         }
-        if (uiState.cameraLensKit.lenses.isNotEmpty()) PresetVisibilitySwitch(
-            R.string.show_all_focal_lengths, uiState.cameraLensKit.showAllFocalLengths, onShowAllFocalLengths)
         Text(
             text = stringResource(R.string.focal_length_presets),
             style = MaterialTheme.typography.titleSmall,
@@ -574,6 +596,14 @@ internal fun FocalLengthControls(
                 )
             }
         }
+        if (uiState.cameraLensKit.lenses.isNotEmpty()) {
+            LensProfileSelector(uiState, onLensSelected)
+            PresetVisibilitySwitch(R.string.show_all_focal_lengths,
+                uiState.cameraLensKit.ignoreLensProfile, onShowAllFocalLengths)
+        }
+        Text(stringResource(R.string.lens_profile_camera_help),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -592,6 +622,7 @@ private fun ApertureDialog(
         title = { Text(stringResource(R.string.aperture_dialog_title)) },
         text = {
             Column(
+                modifier = Modifier.heightIn(max = 520.dp).verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(
@@ -617,8 +648,15 @@ private fun ApertureDialog(
                         onClick = onNextAperture,
                     )
                 }
-                if (uiState.cameraLensKit.lenses.isNotEmpty()) PresetVisibilitySwitch(
-                    R.string.show_all_apertures, uiState.cameraLensKit.showAllApertures, onShowAllApertures)
+                if (uiState.cameraLensKit.lenses.isNotEmpty()) {
+                    uiState.activeLens?.let { lens ->
+                        Text(stringResource(R.string.selected_lens_profile,
+                            lens.name.ifBlank { lensSummary(lens) }),
+                            style = MaterialTheme.typography.bodySmall)
+                    }
+                    PresetVisibilitySwitch(R.string.show_all_apertures,
+                        uiState.cameraLensKit.ignoreLensProfile, onShowAllApertures)
+                }
                 Text(
                     text = stringResource(R.string.aperture_presets),
                     style = MaterialTheme.typography.titleSmall,
@@ -741,6 +779,7 @@ private fun DofResultsPreview() {
             inputError = null,
             calculatorMode = CalculatorMode.DepthOfField,
             focusAtInfinity = false,
+            lensDistanceUnit = com.example.dofcalculator.model.LensDistanceUnit.Feet,
         )
     }
 }
@@ -759,6 +798,7 @@ private fun HyperfocalResultsPreview() {
             inputError = null,
             calculatorMode = CalculatorMode.Hyperfocal,
             focusAtInfinity = false,
+            lensDistanceUnit = com.example.dofcalculator.model.LensDistanceUnit.Feet,
         )
     }
 }

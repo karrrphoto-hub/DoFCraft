@@ -86,12 +86,14 @@ class DigitalMediumFormatTest {
         vm.onFocusDistanceChanged("7.5")
         vm.onSharpnessFieldChanged(SharpnessField.MEGAPIXELS, "100")
         for (criterion in SharpnessCriterionMode.entries) {
-            vm.onSharpnessModeSelected(criterion)
             vm.onCalculatorModeSelected(CalculatorMode.DepthOfField)
             vm.onCameraProfileSelected(BuiltInCameraProfiles.DEFAULT_ID)
+            vm.onSharpnessModeSelected(criterion)
             val previousHyperfocal = vm.uiState.result!!.hyperfocalDistanceMeters
             for (e in expected) {
                 vm.onCameraProfileSelected(e.id)
+                assertEquals(SharpnessCriterionMode.STANDARD, vm.uiState.sharpness.mode)
+                vm.onSharpnessModeSelected(criterion)
                 val coc = SharpnessCriterionCalculator.calculate(camera(e), vm.uiState.sharpness)
                 val h = DepthOfFieldCalculator.calculateHyperfocalDistanceMeters(80.0, 5.6, coc)
                 assertEquals(criterion, vm.uiState.sharpness.mode)

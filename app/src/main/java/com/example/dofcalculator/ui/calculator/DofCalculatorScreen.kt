@@ -80,8 +80,9 @@ fun DofCalculatorRoute(
         onOpenSharpness = viewModel::onOpenSharpness,
         onOpenDiffractionInfo = viewModel::onOpenDiffractionInfo,
         onOpenCameraLenses = viewModel::onOpenCameraLenses,
-        onShowAllFocalLengths = viewModel::onShowAllFocalLengths,
-        onShowAllApertures = viewModel::onShowAllApertures,
+        onShowAllFocalLengths = viewModel::onIgnoreLensProfileChanged,
+        onLensSelected = viewModel::onLensSelected,
+        onShowAllApertures = viewModel::onIgnoreLensProfileChanged,
     )
 
     if (viewModel.uiState.isSharpnessVisible) {
@@ -147,6 +148,7 @@ internal fun CameraManagementDialogs(viewModel: DofCalculatorViewModel) {
     if (manager.cameraId == null || (inlineLenses && !state.presets.storageError)) {
         PresetManagementDialogs(
             state = state.presets,
+            focusDistance = state.focusDistance,
             onAddLens = viewModel::onAddCameraEditorLens,
             onEditLens = viewModel::onEditCameraEditorLens,
             onDeleteLens = viewModel::onDeleteCameraEditorLens,
@@ -178,6 +180,7 @@ internal fun CameraManagementDialogs(viewModel: DofCalculatorViewModel) {
             onCancelDelete = viewModel::onCancelDeleteLens,
             onName = viewModel::onLensNameChanged,
             onZoom = viewModel::onLensZoomChanged,
+            onDistanceUnit = viewModel::onLensDistanceUnitChanged,
             onField = viewModel::onLensFieldChanged,
             onSave = viewModel::onSaveLens,
             onCancelEditor = viewModel::onCancelLensEditor,
@@ -211,6 +214,7 @@ fun DofCalculatorScreen(
     onOpenCameraLenses: (String) -> Unit = {},
     onShowAllFocalLengths: (Boolean) -> Unit = {},
     onShowAllApertures: (Boolean) -> Unit = {},
+    onLensSelected: (String) -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -260,6 +264,7 @@ fun DofCalculatorScreen(
             onOpenDiffractionInfo = onOpenDiffractionInfo,
             onOpenCameraLenses = onOpenCameraLenses,
             onShowAllFocalLengths = onShowAllFocalLengths,
+            onLensSelected = onLensSelected,
             onShowAllApertures = onShowAllApertures,
             modifier = Modifier
                 .fillMaxSize()

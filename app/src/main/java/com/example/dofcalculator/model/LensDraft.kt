@@ -9,9 +9,10 @@ data class LensDraft(
     val name: String = "",
     val type: LensType = LensType.PRIME,
     val fields: Map<LensField, String> = emptyMap(),
+    val distanceScaleUnit: LensDistanceUnit? = null,
 ) {
     companion object {
-        fun from(lens: Lens): LensDraft {
+        fun from(lens: Lens, defaultDistanceUnit: LensDistanceUnit? = null): LensDraft {
             val fields = when (lens) {
                 is Lens.Prime -> mapOf(LensField.PRIME_FOCAL to lens.focalLengthMm.toString(),
                     LensField.PRIME_APERTURE to lens.maxAperture.toString())
@@ -21,7 +22,8 @@ data class LensDraft(
                     LensField.TELE_APERTURE to lens.maxApertureAtMaxFocal.toString())
             } + (LensField.MIN_APERTURE to lens.minAperture?.toString().orEmpty())
             return LensDraft(lens.id, lens.name,
-                if (lens is Lens.Zoom) LensType.ZOOM else LensType.PRIME, fields)
+                if (lens is Lens.Zoom) LensType.ZOOM else LensType.PRIME, fields,
+                lens.distanceScaleUnit ?: defaultDistanceUnit)
         }
     }
 }

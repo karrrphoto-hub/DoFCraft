@@ -65,14 +65,23 @@ internal fun DistanceParameterTile(
 
 @Composable
 private fun DistanceSummary(state: DofCalculatorUiState, onClick: () -> Unit, modifier: Modifier) {
-    val display = DistanceDisplay(state.distanceUnit, state.distanceRounding,
+    val display = DistanceDisplay(state.effectiveFocusDistanceUnit, state.distanceRounding,
         LocalResources.current.configuration.locales[0])
     val hyperfocal = state.calculatorMode == CalculatorMode.Hyperfocal
     val value = if (hyperfocal) stringResource(R.string.hyperfocal_mode_label)
     else when (val distance = state.focusDistance) {
         CalculatedDistance.Infinity -> "∞"
-        is CalculatedDistance.Finite -> stringResource(R.string.focus_distance_with_unit,
-            display.number(distance.meters), distanceUnitLabel(state.distanceUnit))
+        is CalculatedDistance.Finite -> {
+            val scale = state.activeLens?.distanceScaleUnit
+            val reading = scale?.let { com.example.dofcalculator.settings.lensDistanceReading(
+                distance.meters, it, state.distanceUnit, display.locale) }
+            if (reading?.reference != null)
+                stringResource(R.string.lens_distance_dual, reading.value,
+                    distanceUnitLabel(state.effectiveFocusDistanceUnit), reading.reference,
+                    distanceUnitLabel(state.distanceUnit))
+            else stringResource(R.string.focus_distance_with_unit,
+                display.number(distance.meters), distanceUnitLabel(state.effectiveFocusDistanceUnit))
+        }
         null -> "—"
     }
     Column(modifier.heightIn(min = 64.dp).clickable(role = Role.Button, onClick = onClick).padding(8.dp),

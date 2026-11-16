@@ -31,11 +31,19 @@ internal class InMemoryPresetRepository(
             state.value.cameras.any { it.id == cameraId && it.isBuiltIn }
         updateKit(cameraId) {
             require(!builtIn || lenses.any { it.id == lens.id })
-            copy(lenses = lenses.filterNot { it.id == lens.id } + lens)
+            copy(lenses = lenses.filterNot { it.id == lens.id } + lens,
+                selectedLensId = selectedLens?.id ?: lens.id)
         }
     }
     override suspend fun deleteLens(cameraId: String, lensId: String) {
-        updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lensId }) }
+        updateKit(cameraId) { copy(lenses = lenses.filterNot { it.id == lensId },
+            selectedLensId = selectedLensId.takeUnless { it == lensId }) }
+    }
+    override suspend fun selectLens(cameraId: String, lensId: String) {
+        updateKit(cameraId) {
+            require(lenses.any { it.id == lensId })
+            copy(selectedLensId = lensId, showAllFocalLengths = false)
+        }
     }
     override suspend fun setShowAllPresets(cameraId: String, focalLengths: Boolean, enabled: Boolean) {
         updateKit(cameraId) {
