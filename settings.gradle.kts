@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "DOF Calculator"
+rootProject.name = "DoFCraft"
 include(":app")

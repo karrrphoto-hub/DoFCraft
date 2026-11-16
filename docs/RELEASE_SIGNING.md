@@ -89,7 +89,7 @@ From version 1.0.1 onward, reuse the permanent Release key for compatible update
 
 ## Distribution boundary
 
-- Source and experimental Macro archive remain in private DOF-Calculator.
+- Source and experimental Macro archive remain in private [DoFCraft](https://github.com/karrrphoto-hub/DoFCraft) (formerly DOF-Calculator). The user-facing brand is DoFCraft; all existing signing paths, alias, Keychain identifiers and certificate remain unchanged. Existing APK filenames retain their historical names.
 - Public DoF-Master contains only app documentation/images and release assets.
 - Publish the signed APK and its SHA-256 checksum, never an unsigned APK, keystore,
   password, local configuration, source history or Macro archive.

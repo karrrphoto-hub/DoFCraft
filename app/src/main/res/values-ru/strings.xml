@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">DoF Master</string>
-    <string name="calculator_title">DoF Master</string>
+    <string name="app_name">DoFCraft</string>
+    <string name="calculator_title">DoFCraft</string>
     <string name="input_section_title">Параметры съёмки</string>
     <string name="camera_coc_parameter">Камера / CoC</string>
     <string name="focal_length_parameter">Фокусное</string>
@@ -90,7 +90,7 @@
     <string name="theme_light">Светлая</string>
     <string name="theme_dark">Тёмная</string>
     <string name="about_menu">О приложении</string>
-    <string name="about_title">О DoF Master</string>
+    <string name="about_title">О DoFCraft</string>
     <string name="about_description">Рассчитывает глубину резкости и дистанцию фокусировки для съёмки по гиперфокалу. Работает без интернета.</string>
     <string name="version_label">Версия %1$s</string>
     <string name="settings_storage_error_title">Не удалось сохранить настройки</string>

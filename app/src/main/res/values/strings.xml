@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">DoF Master</string>
-    <string name="calculator_title">DoF Master</string>
+    <string name="app_name">DoFCraft</string>
+    <string name="calculator_title">DoFCraft</string>
     <string name="input_section_title">Exposure parameters</string>
     <string name="camera_coc_parameter">Camera / CoC</string>
     <string name="focal_length_parameter">Focal length</string>
@@ -90,7 +90,7 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="about_menu">About</string>
-    <string name="about_title">About DoF Master</string>
+    <string name="about_title">About DoFCraft</string>
     <string name="about_description">Calculates depth of field and where to focus for hyperfocal photography. Works offline.</string>
     <string name="version_label">Version %1$s</string>
     <string name="settings_storage_error_title">Could not save settings</string>

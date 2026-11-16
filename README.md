@@ -1,121 +1,84 @@
-<div align="center">
-  <img src="docs/images/app-icon.svg" width="112" height="112" alt="Иконка DoF Master">
+# DoFCraft
 
-  <h1>DoF Master</h1>
+**Depth of Field & Hyperfocal Calculator for Photographers**
 
-  <p><strong>Глубина резкости и гиперфокал — всегда под рукой.</strong></p>
-  <p>Для фотографии и видео. Без интернета.</p>
+Android · Kotlin · Photography
 
-  <p><strong>Android 8.0+</strong> &nbsp;·&nbsp; <strong>Полностью офлайн</strong> &nbsp;·&nbsp; <strong>Русский / English</strong></p>
+[Русский](README.ru.md)
 
-  <p>Русский &nbsp;|&nbsp; <a href="README.en.md">English</a></p>
+DoFCraft is an Android photography tool for calculating depth of field and hyperfocal distance, with flexible sharpness criteria and support for digital, film and custom camera formats. It works entirely offline.
 
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.apk"><strong>Скачать APK — DoF Master 1.0.1</strong></a> &nbsp;·&nbsp; <a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.1">Описание релиза и SHA-256</a></p>
-  <p>Android 8.0+ &nbsp;·&nbsp; 1,9 МБ &nbsp;·&nbsp; Подписанный Release APK</p>
-  <p>Публичная загрузка без входа в GitHub. <a href="docs/RELEASE_SIGNING.md">Подпись и совместимость с прежними Debug-сборками</a>.</p>
-</div>
+Choose your camera, focal length, aperture and focus distance to see the near and far limits of depth of field, total depth of field and a diagram. Hyperfocal mode finds the focus distance that extends the far limit to infinity.
 
----
+## Features
 
-DoF Master помогает оценить, какая часть сцены будет выглядеть резкой. Выберите камеру, фокусное расстояние, диафрагму и дистанцию — приложение покажет ближнюю и дальнюю границы глубины резкости, её общую величину и наглядную схему.
+- Depth of field and hyperfocal distance, with explicit optical infinity.
+- Built-in camera formats and custom profiles with physical frame dimensions.
+- Six sharpness criteria for everyday viewing, pixels, video, print, screens and a custom Circle of Confusion (CoC).
+- Prime and zoom lens collections in custom camera profiles. Select a lens in Focal Length for its quick focal and aperture values.
+- Per-lens distance scales in meters or feet, including a second hyperfocal reading in lens units when they differ from app units.
+- Ignore Lens Profile to return to standard quick values and app units. Manual input remains available.
+- An adaptive focus-distance slider, manual entry and a depth-of-field diagram.
+- Independent, nonblocking diffraction and close-focus information.
+- English and Russian, light and dark themes, local profiles and preferences.
 
-Для пейзажа переключитесь на гиперфокал: приложение подскажет дистанцию фокусировки, при которой дальняя граница глубины резкости уходит в бесконечность.
+## Supported camera formats
 
-<table>
-  <tr>
-    <th>Глубина резкости</th>
-    <th>Гиперфокал</th>
-    <th>Критерий резкости</th>
-  </tr>
-  <tr>
-    <td><a href="docs/images/dof-en.svg"><img src="docs/images/dof-en.svg" width="240" alt="Расчёт глубины резкости: камера, параметры съёмки и результаты"></a></td>
-    <td><a href="docs/images/hyperfocal-en.svg"><img src="docs/images/hyperfocal-en.svg" width="240" alt="Гиперфокальная дистанция и границы глубины резкости"></a></td>
-    <td><a href="docs/images/sharpness-en.svg"><img src="docs/images/sharpness-en.svg" width="240" alt="Шесть критериев резкости и пояснение выбранного критерия"></a></td>
-  </tr>
-</table>
+The catalogue includes Nikon 1, Four Thirds, APS-C, APS-H, full frame / 35 mm, digital medium format, medium-format film (645 through 6×17 cm) and large-format film (4×5, 5×7 and 8×10 inches). Custom profiles accept physical frame dimensions in millimeters.
 
-*Реальные экраны приложения. На скриншотах выбран английский язык; интерфейс также доступен на русском.*
+Format labels describe the nominal format; calculations use its physical frame dimensions.
 
-## Возможности
+## Sharpness criteria
 
-- **ГРИП и гиперфокал.** Ближняя и дальняя границы, общая глубина резкости и схема расположения объекта.
-- **Удобная дистанция.** Адаптивный слайдер, ручной ввод и отдельное положение оптической бесконечности.
-- **Свои камеры и объективы.** Пользовательские профили с физическими размерами кадра и комплектами фикс- и зум-объективов.
-- **Быстрый ввод по комплекту оптики.** Все объективы пользовательской камеры формируют общий набор фокусных и диафрагм. Нестандартные значения сохраняются; ручной ввод доступен всегда.
-- **Подсказки без ограничений.** Независимые сообщения о дифракции и близкой дистанции объясняют особенности расчёта, не меняя параметры съёмки.
-- **Настройка под себя.** Русский и английский языки, светлая, тёмная и системная темы, единицы измерения и отображение чисел.
+Choose an acceptable amount of blur for how you intend to view the image.
 
-## Резкость под вашу задачу
-
-То, насколько заметно размытие, зависит от того, как рассматривают изображение. В DoF Master можно выбрать подходящий критерий:
-
-| Критерий | Для чего |
+| Criterion | Intended use |
 | --- | --- |
-| **Standard** | Обычный просмотр фотографии. Использует значение формата из каталога, а при его отсутствии — расчёт по диагонали физического кадра. |
-| **Pixel-Based** | Оценка при увеличении цифрового изображения с учётом разрешения сенсора. |
-| **Video-Based** | Расчёт с учётом разрешения записываемого видео. |
-| **Print-Based** | Печать с выбранными размером и условиями просмотра. |
-| **Screen-Based** | Просмотр изображения на выбранном экране. |
-| **Custom** | Ручное задание кружка рассеяния (CoC, Circle of Confusion). |
+| Standard | Traditional photographic viewing, using the format's catalogue CoC or a frame-diagonal fallback. |
+| Pixel-Based | Enlarged digital viewing based on sensor resolution. |
+| Video-Based | Viewing based on recording resolution and active recording area. |
+| Print-Based | A chosen print size and viewing conditions. |
+| Screen-Based | A chosen display and viewing conditions. |
+| Custom | A manually specified Circle of Confusion (CoC). |
 
-Для Standard без каталожного значения используется традиционный фотографический ориентир: 36×24 мм и кружок рассеяния 0,030 мм, пропорционально диагонали кадра. Явно заданные значения встроенных форматов имеют приоритет.
+Standard preserves explicit catalogue recommendations. Otherwise, it scales the traditional 36×24 mm / 0.030 mm reference by the physical frame diagonal. This is a photographic convention, not a universal physical sharpness limit.
 
-Расчёты помогают планировать съёмку, но не гарантируют одинаковую детализацию у всех реальных объективов. На близких дистанциях допущения оптической модели могут заметнее расходиться с их характеристиками. Информационные подсказки поясняют эти ограничения, сохраняя доступ ко всем результатам.
+Switching to a different camera selects Standard; editing the current camera preserves the selected criterion.
 
-## Камеры и быстрые значения
+## Diffraction awareness
 
-Создайте собственный профиль камеры и добавьте свою оптику. Например, комплект **24–120 мм f/4 + 50 мм f/1.4 + 200 мм f/4** даёт удобные кнопки по всему набору — выбирать активный объектив не требуется.
+Informational messages describe the possible loss of fine detail as the aperture is stopped down, relative to the selected CoC. They leave all shooting parameters and results under your control. A greater depth of field can still be useful despite some loss of fine detail.
 
-Для зумов используются стандартные фокусные внутри каждого диапазона и его точные границы. Фикс 58 мм или зум 48–217 мм сохраняют собственные значения. Кнопки диафрагм учитывают светосилу и указанные пределы всего комплекта.
+These are planning estimates, not measurements of a real lens's image quality. Close-focus information explains where simplified optical assumptions may become less accurate. There is no separate macro calculation mode in the current app.
 
-Переключатели **«Показывать все фокусные»** и **«Показывать все диафрагмы»** работают независимо. Даже при ограниченном быстром наборе можно ввести любое допустимое значение вручную.
+## Technology
 
-## Без интернета
+Kotlin, Jetpack Compose, Material 3, AndroidX ViewModel and local DataStore persistence. One Android app module; optical calculations are pure Kotlin and covered by JVM tests.
 
-Приложение работает локально. В нём нет рекламы, аналитики, учётных записей или телеметрии; разрешение на доступ к интернету не запрашивается. Профили и настройки сохраняются на устройстве.
+Android 8.0 (API 26) or newer. No internet permission, advertising, analytics, accounts or telemetry.
 
-## Сборка и установка
+## Building
 
-Понадобятся Android Studio и Android SDK, указанный в конфигурации проекта. Используйте настроенный для проекта Gradle JDK.
-
-1. Откройте существующий проект в Android Studio и дождитесь Gradle Sync.
-2. Подключите Android-устройство версии 8.0 или новее либо запустите эмулятор.
-3. Выберите конфигурацию **app** и нажмите **Run**.
-
-Для получения установочного Debug APK:
+Open this existing project in Android Studio, use its configured Gradle JDK and install the SDK specified in the Gradle files. Sync, then run the **app** configuration on a device or emulator.
 
 ~~~bash
-./gradlew :app:assembleDebug
+./gradlew :app:testDebugUnitTest :app:assembleDebug
 ~~~
 
-Готовый файл: `app/build/outputs/apk/debug/app-debug.apk`.
+Debug APK: `app/build/outputs/apk/debug/app-debug.apk`.
 
-Перенесите APK на Android-устройство и откройте его. Если Android запросит разрешение на установку, разрешите её для приложения, из которого открываете файл. Debug APK предназначен для тестирования; это не подписанный релиз для магазина.
+For production signing, follow [RELEASE_SIGNING.md](docs/RELEASE_SIGNING.md). Reuse the existing signing identity; never upload signing material or local configuration.
 
-## Для разработки
+Development rules: [AGENTS.md](AGENTS.md).
 
-Один модуль приложения, Kotlin, Jetpack Compose и Material 3. Математика отделена от Android UI; состояние экранов управляется ViewModel, настройки хранятся локально через DataStore.
+## Project status and distribution
 
-| Каталог | Содержимое |
-| --- | --- |
-| `app/src/main/java/com/example/dofcalculator/calculation` | Формулы, валидация и генераторы быстрых значений |
-| `app/src/main/java/com/example/dofcalculator/model` | Входные данные и типизированные результаты |
-| `app/src/main/java/com/example/dofcalculator/ui` | Compose, ViewModel и состояния экранов |
-| `app/src/main/java/com/example/dofcalculator/data` | Каталоги и локальное хранение |
-| `app/src/main/java/com/example/dofcalculator/settings` | Настройки приложения |
+This is the private source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
 
-Проверки:
+The latest published APK at the time of this rebrand is [DoF Master 1.0.2](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2). The separate public distribution repository and its existing APKs retain their historical names; this change does not publish a new APK. No Google Play listing is claimed.
 
-~~~bash
-./gradlew :app:testDebugUnitTest :app:lintDebug
-./gradlew :app:assembleDebug
-~~~
+The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the private `archive/macro-prototype` branch.
 
-Правила работы с проектом: [AGENTS.md](AGENTS.md).
+## License
 
----
-
-<div align="center">
-  <strong>DoF Master</strong><br>
-  Планируйте глубину резкости. Сохраняйте свободу выбора.
-</div>
+No LICENSE file is included. This private repository is not presented as an open-source project.

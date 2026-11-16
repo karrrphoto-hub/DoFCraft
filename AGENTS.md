@@ -1,8 +1,8 @@
-# DoF Master development guide
+# DoFCraft development guide
 
 ## Product scope
 
-DoF Master is a native, fully offline Android application for calculating depth of field (DOF/ГРИП) and hyperfocal distance.
+DoFCraft is a native, fully offline Android application for calculating depth of field (DOF/ГРИП) and hyperfocal distance.
 
 Keep these project constraints unless the user explicitly changes them:
 
@@ -14,6 +14,7 @@ Keep these project constraints unless the user explicitly changes them:
 - No network features or `INTERNET` permission.
 - No advertising, analytics, payments, account systems, or telemetry.
 - Do not change the existing `applicationId` or `namespace` without an explicit migration request.
+- DoFCraft is the user-facing brand. The private source repository is `karrrphoto-hub/DoFCraft`; keep the separate public `DoF-Master` distribution repository unchanged unless requested. Preserve existing package/theme names, DataStore identifiers and the permanent Release signing identity when rebranding.
 
 ## Architecture
 
