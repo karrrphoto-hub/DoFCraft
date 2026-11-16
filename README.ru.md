@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="docs/images/app-icon.svg" width="112" height="112" alt="Иконка DoF Master">
+  <img src="docs/images/app-icon.svg" width="112" height="112" alt="Иконка DoFCraft">
 
-  <h1>DoF Master</h1>
+  <h1>DoFCraft</h1>
 
   <p><strong>Глубина резкости и гиперфокал — всегда под рукой.</strong></p>
   <p>Для фотографии и видео. Без интернета.</p>
@@ -10,14 +10,14 @@
 
   <p><a href="README.md">English</a> &nbsp;|&nbsp; Русский</p>
 
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk"><strong>Скачать APK · DoF Master 1.0.2</strong></a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk"><strong>Скачать APK · DoFCraft 1.0.3</strong></a></p>
   <p>Android 8.0+ &nbsp;·&nbsp; Подписанная Release-сборка &nbsp;·&nbsp; Без входа в GitHub</p>
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2">Описание релиза и контрольная сумма SHA-256</a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3">Описание релиза и контрольная сумма SHA-256</a></p>
 </div>
 
 ---
 
-DoF Master помогает оценить, какая часть сцены будет выглядеть резкой. Выберите камеру, фокусное расстояние, диафрагму и дистанцию — приложение покажет ближнюю и дальнюю границы глубины резкости, её общую величину и наглядную схему.
+DoFCraft помогает оценить, какая часть сцены будет выглядеть резкой. Выберите камеру, фокусное расстояние, диафрагму и дистанцию — приложение покажет ближнюю и дальнюю границы глубины резкости, её общую величину и наглядную схему.
 
 Для пейзажа переключитесь на гиперфокал: приложение подскажет дистанцию фокусировки, при которой дальняя граница глубины резкости уходит в бесконечность.
 
@@ -47,7 +47,7 @@ DoF Master помогает оценить, какая часть сцены б�
 
 ## Резкость под вашу задачу
 
-То, насколько заметно размытие, зависит от того, как рассматривают изображение. В DoF Master можно выбрать подходящий критерий:
+То, насколько заметно размытие, зависит от того, как рассматривают изображение. В DoFCraft можно выбрать подходящий критерий:
 
 | Критерий | Для чего |
 | --- | --- |
@@ -78,11 +78,11 @@ DoF Master помогает оценить, какая часть сцены б�
 
 ## Установка
 
-1. [Скачайте подписанный Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk) на смартфон.
+1. [Скачайте подписанный Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk) на смартфон.
 2. Откройте файл и при необходимости разрешите браузеру или файловому менеджеру установку приложения.
 3. Завершите установку. Требуется Android 8.0 или новее.
 
-На [странице релиза](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2) доступна контрольная сумма SHA-256 для проверки загрузки.
+На [странице релиза](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3) доступна контрольная сумма SHA-256 для проверки загрузки.
 
 Если ранее была установлена приватная Debug-сборка, Release имеет другую подпись и не обновит её поверх. Сохраните прежнюю установку, если нужны её профили: удаление приложения может стереть данные.
 
@@ -93,6 +93,6 @@ DoF Master помогает оценить, какая часть сцены б�
 ---
 
 <div align="center">
-  <strong>DoF Master</strong><br>
+  <strong>DoFCraft</strong><br>
   Планируйте глубину резкости. Сохраняйте свободу выбора.
 </div>

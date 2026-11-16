@@ -1,7 +1,7 @@
 <div align="center">
-  <img src="docs/images/app-icon.svg" width="112" height="112" alt="DoF Master app icon">
+  <img src="docs/images/app-icon.svg" width="112" height="112" alt="DoFCraft app icon">
 
-  <h1>DoF Master</h1>
+  <h1>DoFCraft</h1>
 
   <p><strong>Depth of field and hyperfocal distance, wherever you shoot.</strong></p>
   <p>For photography and video. No internet required.</p>
@@ -10,14 +10,14 @@
 
   <p>English &nbsp;|&nbsp; <a href="README.ru.md">Русский</a></p>
 
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk"><strong>Download APK · DoF Master 1.0.2</strong></a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk"><strong>Download APK · DoFCraft 1.0.3</strong></a></p>
   <p>Android 8.0+ &nbsp;·&nbsp; Signed Release APK &nbsp;·&nbsp; No sign-in required</p>
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2">Release notes and SHA-256 checksum</a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3">Release notes and SHA-256 checksum</a></p>
 </div>
 
 ---
 
-DoF Master helps you estimate how much of a scene will appear sharp. Choose your camera, focal length, aperture and focus distance to see the near and far depth of field limits, total depth of field and a visual diagram.
+DoFCraft helps you estimate how much of a scene will appear sharp. Choose your camera, focal length, aperture and focus distance to see the near and far depth of field limits, total depth of field and a visual diagram.
 
 For landscapes, switch to hyperfocal mode to find the focus distance that extends the far depth of field limit to infinity.
 
@@ -47,7 +47,7 @@ For landscapes, switch to hyperfocal mode to find the focus distance that extend
 
 ## Sharpness for your output
 
-Visible blur depends on how an image is viewed. DoF Master offers six criteria:
+Visible blur depends on how an image is viewed. DoFCraft offers six criteria:
 
 | Criterion | Purpose |
 | --- | --- |
@@ -78,11 +78,11 @@ The app runs locally, with no advertising, analytics, accounts or telemetry. It 
 
 ## Installation
 
-1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk) on your Android device.
+1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk) on your Android device.
 2. Open the downloaded file and, if prompted, allow your browser or file manager to install this app.
 3. Complete installation. Android 8.0 or newer is required.
 
-The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.2) includes a SHA-256 checksum for verifying the download.
+The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3) includes a SHA-256 checksum for verifying the download.
 
 If you previously installed a private Debug build, this Release uses a different signing certificate and cannot update it in place. Keep the old installation if you need its saved profiles; uninstalling it can erase app data.
 
@@ -93,6 +93,6 @@ This repository contains the app description, icon, screenshots and downloadable
 ---
 
 <div align="center">
-  <strong>DoF Master</strong><br>
+  <strong>DoFCraft</strong><br>
   Plan your depth of field. Keep your creative choices.
 </div>
