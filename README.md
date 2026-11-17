@@ -10,9 +10,9 @@
 
   <p>English &nbsp;|&nbsp; <a href="README.ru.md">Русский</a></p>
 
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk"><strong>Download APK · DoFCraft 1.0.3</strong></a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.4/DoFCraft-1.0.4.apk"><strong>Download APK · DoFCraft 1.0.4</strong></a></p>
   <p>Android 8.0+ &nbsp;·&nbsp; Signed Release APK &nbsp;·&nbsp; No sign-in required</p>
-  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3">Release notes and SHA-256 checksum</a></p>
+  <p><a href="https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.4">Release notes and SHA-256 checksum</a></p>
 </div>
 
 ---
@@ -64,6 +64,10 @@ Calculations help plan a shot; they do not guarantee identical detail from every
 
 ## Cameras and quick values
 
+The camera picker separates **User Camera Profiles** from **Default Camera Profiles**, with your profiles first. Empty sections are hidden, including when searching. Lens lists are sorted from shorter to longer focal lengths, using the minimum focal length for zooms, regardless of their distance-scale units.
+
+Camera rows show up to three lenses with bullets and a count of the remaining lenses. Distance-scale units appear only when they differ from the app's unit family; the current focus distance is kept out of the camera picker.
+
 Create a custom camera profile and add your lenses. In **Focal Length**, choose the lens you are using. Its focal range, aperture presets and distance-scale units become available. Lens selection is remembered for each camera. Selecting a lens brings out-of-range focal length and aperture inputs to its nearest supported limits; manual input remains available afterward.
 
 Zooms contribute standard focal lengths within their range and their exact endpoints. A 58 mm prime or a 48–217 mm zoom keeps its own values. Set each lens's distance scale to meters or feet in Camera Profile.
@@ -78,11 +82,11 @@ The app runs locally, with no advertising, analytics, accounts or telemetry. It 
 
 ## Installation
 
-1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk) on your Android device.
+1. [Download the signed Release APK](https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.4/DoFCraft-1.0.4.apk) on your Android device.
 2. Open the downloaded file and, if prompted, allow your browser or file manager to install this app.
 3. Complete installation. Android 8.0 or newer is required.
 
-The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3) includes a SHA-256 checksum for verifying the download.
+The [release page](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.4) includes a SHA-256 checksum for verifying the download.
 
 If you previously installed a private Debug build, this Release uses a different signing certificate and cannot update it in place. Keep the old installation if you need its saved profiles; uninstalling it can erase app data.
 
