@@ -13,9 +13,10 @@ Choose your camera, focal length, aperture and focus distance to see the near an
 ## Features
 
 - Depth of field and hyperfocal distance, with explicit optical infinity.
-- Built-in camera formats and custom profiles with physical frame dimensions.
+- Built-in camera formats and custom profiles with physical frame dimensions, grouped separately with user profiles first.
 - Six sharpness criteria for everyday viewing, pixels, video, print, screens and a custom Circle of Confusion (CoC).
-- Prime and zoom lens collections in custom camera profiles. Select a lens in Focal Length for its quick focal and aperture values.
+- Prime and zoom lens collections in custom camera profiles, sorted by focal length. Select a lens in Focal Length for its quick focal and aperture values.
+- Compact camera-picker lens summaries with bullets, three visible lenses and a remaining-lens count.
 - Per-lens distance scales in meters or feet, including a second hyperfocal reading in lens units when they differ from app units.
 - Ignore Lens Profile to return to standard quick values and app units. Manual input remains available.
 - An adaptive focus-distance slider, manual entry and a depth-of-field diagram.
@@ -75,7 +76,7 @@ Development rules: [AGENTS.md](AGENTS.md).
 
 This is the private source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
 
-Download [DoFCraft 1.0.3](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.3) from the separate public distribution repository. Its historical repository name and older APKs are retained. Existing production-signed installations can update in place. No Google Play listing is claimed.
+Download [DoFCraft 1.0.4](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.4) from the separate public distribution repository. Its historical repository name and older APKs are retained. Existing production-signed installations can update in place. No Google Play listing is claimed.
 
 The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the private `archive/macro-prototype` branch.
 

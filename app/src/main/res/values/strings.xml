@@ -113,6 +113,8 @@
     <string name="format_15">Large Format 8×10 in</string>
     <string name="format_16">Other format</string>
     <string name="select_camera">Select Camera</string>
+    <string name="default_camera_profiles">Default Camera Profiles</string>
+    <string name="user_camera_profiles">User Camera Profiles</string>
     <string name="search_cameras">Search cameras</string>
     <string name="delete_camera">Delete Camera</string>
     <string name="delete_camera_confirmation">Delete %1$s?</string>
@@ -345,8 +347,8 @@
         <item quantity="other">%d lenses</item>
     </plurals>
     <plurals name="more_lenses">
-        <item quantity="one">%d more lens</item>
-        <item quantity="other">%d more lenses</item>
+        <item quantity="one">and %d other lens</item>
+        <item quantity="other">and %d other lenses</item>
     </plurals>
     <string name="diffraction_conventional_help">At high magnifications, this estimate may be less accurate. In these conditions, the lens may behave as though the aperture were stopped down further. The app uses the f-number you entered and does not adjust it for magnification.</string>
     <string name="close_focus_title">Possible Macro Photography</string>

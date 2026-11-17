@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.dofcalculator.R
@@ -93,6 +95,7 @@ internal fun PresetManagementDialogs(
             val filtered = names.filter { (_, name, format) ->
                 name.contains(query, ignoreCase = true) || format.contains(query, ignoreCase = true)
             }
+            val (userCameras, defaultCameras) = filtered.partition { !it.first.isBuiltIn }
             AlertDialog(
                 onDismissRequest = onCloseManager,
                 title = { Text(stringResource(R.string.select_camera)) },
@@ -106,48 +109,65 @@ internal fun PresetManagementDialogs(
                             state = rememberLazyListState(),
                             modifier = Modifier.heightIn(max = 400.dp),
                         ) {
-                            items(filtered, key = { it.first.id }) { (camera, name, format) ->
-                                Column(Modifier.fillMaxWidth()) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
-                                            .selectable(
-                                                selected = state.selectedCameraId == camera.id,
-                                                role = Role.RadioButton,
-                                                onClick = { onSelectCamera(camera.id); onCloseManager() })
-                                            .padding(vertical = 8.dp),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        RadioButton(selected = state.selectedCameraId == camera.id, onClick = null)
-                                        Column(Modifier.weight(1f)) {
-                                            Text(name, style = MaterialTheme.typography.bodyMedium)
-                                            Text(
-                                                format,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                        }
+                            val sections = listOf(
+                                R.string.user_camera_profiles to userCameras,
+                                R.string.default_camera_profiles to defaultCameras,
+                            )
+                            sections.forEach { (title, cameras) ->
+                                if (cameras.isNotEmpty()) {
+                                    item(key = title) {
+                                        Text(
+                                            stringResource(title),
+                                            modifier = Modifier.fillMaxWidth()
+                                                .padding(top = 12.dp, bottom = 4.dp)
+                                                .semantics { heading() },
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
                                     }
-                                    val lenses = state.lensKitsByCameraId[camera.id]?.lenses.orEmpty()
-                                    if (lenses.isNotEmpty() || !camera.isBuiltIn) {
-                                        CameraLensDescriptions(lenses,
-                                            Modifier.fillMaxWidth().padding(start = 48.dp, bottom = 8.dp),
-                                            focusDistance.takeIf { camera.id == state.selectedCameraId })
-                                    }
-                                    if (!camera.isBuiltIn) {
-                                        FlowRow(
-                                            modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        ) {
-                                            TextButton(onClick = { onEditCamera(camera.id) }) {
-                                                Text(stringResource(R.string.edit))
+                                    items(cameras, key = { it.first.id }) { (camera, name, format) ->
+                                        Column(Modifier.fillMaxWidth()) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp)
+                                                    .selectable(
+                                                        selected = state.selectedCameraId == camera.id,
+                                                        role = Role.RadioButton,
+                                                        onClick = { onSelectCamera(camera.id); onCloseManager() })
+                                                    .padding(vertical = 8.dp),
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                            ) {
+                                                RadioButton(selected = state.selectedCameraId == camera.id, onClick = null)
+                                                Column(Modifier.weight(1f)) {
+                                                    Text(name, style = MaterialTheme.typography.bodyMedium)
+                                                    Text(
+                                                        format,
+                                                        style = MaterialTheme.typography.bodySmall,
+                                                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                                }
                                             }
-                                            TextButton(onClick = { onDeleteCamera(camera.id) }) {
-                                                Text(stringResource(R.string.delete))
+                                            val lenses = state.lensKitsByCameraId[camera.id]?.lenses.orEmpty()
+                                            if (lenses.isNotEmpty() || !camera.isBuiltIn) {
+                                                CameraLensDescriptions(lenses,
+                                                    Modifier.fillMaxWidth().padding(start = 48.dp, bottom = 8.dp))
+                                            }
+                                            if (!camera.isBuiltIn) {
+                                                FlowRow(
+                                                    modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
+                                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                                ) {
+                                                    TextButton(onClick = { onEditCamera(camera.id) }) {
+                                                        Text(stringResource(R.string.edit))
+                                                    }
+                                                    TextButton(onClick = { onDeleteCamera(camera.id) }) {
+                                                        Text(stringResource(R.string.delete))
+                                                    }
+                                                }
                                             }
                                         }
+                                        HorizontalDivider()
                                     }
                                 }
-                                HorizontalDivider()
                             }
                         }
                     }
@@ -266,10 +286,15 @@ private fun CameraPickerLensesPreview() {
     val kit = com.example.dofcalculator.model.CameraLensKit(listOf(
         Lens.Prime("prime", "HD Pentax", 25.0, 3.5),
         Lens.Zoom("zoom", minFocalLengthMm = 24.0, maxFocalLengthMm = 120.0,
-            maxApertureAtMinFocal = 4.0, maxApertureAtMaxFocal = 4.0)))
+            maxApertureAtMinFocal = 4.0, maxApertureAtMaxFocal = 4.0,
+            distanceScaleUnit = com.example.dofcalculator.model.LensDistanceUnit.Feet),
+        Lens.Prime("portrait", "Portrait", 85.0, 1.8),
+        Lens.Prime("wide", focalLengthMm = 20.0, maxAperture = 2.8),
+        Lens.Prime("tele", focalLengthMm = 135.0, maxAperture = 2.0)))
     com.example.dofcalculator.ui.theme.DOFCalculatorTheme(dynamicColor = false) {
         PresetManagementDialogs(
-            state = PresetManagerUiState(cameras = listOf(camera), selectedCameraId = camera.id,
+            state = PresetManagerUiState(cameras = com.example.dofcalculator.data.BuiltInCameraProfiles.cameras + camera,
+                selectedCameraId = camera.id,
                 isManagerVisible = true, lensKitsByCameraId = mapOf(camera.id to kit)),
             onCloseManager = {}, onSelectCamera = {}, onCustomFormatChanged = {},
             onConfirmDelete = {}, onCancelDelete = {}, onCreateCamera = {}, onEditCamera = {},

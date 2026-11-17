@@ -88,6 +88,21 @@ SHA-256: `9f92845d90c0a8e68226ba633f261aaa3b76f6ba030f527e677850d5e496fa42`.
 Public distribution stays in the existing DoF-Master repository, with updated
 DoFCraft presentation. Source and the Macro archive remain private.
 
+## Release 1.0.4
+
+VersionCode 5; same application ID and permanent production certificate.
+APK: `DoFCraft-1.0.4.apk` (1,898,448 bytes).
+SHA-256: `bae028ffd93097329da3999e965fbdb0edd318c0ef75cfa4bbf033390ca53dd1`.
+
+Separates user and default camera profiles with user profiles first; sorts lens
+lists by focal length; makes camera-picker lens descriptions compact with bullets,
+three visible lenses and a remaining count. Distance-scale units appear there only
+when they differ from the app's unit family, without current focus-distance rows.
+
+Build validation: full JVM suite, Release lint, optimized Release and Debug builds,
+and installation/launch of the actual signed Release APK on an isolated read-only emulator.
+Public distribution contains documentation plus the signed APK and checksum.
+
 ## Upgrade from earlier private Debug builds
 
 Those APKs use the Android Debug certificate. Android cannot install the new

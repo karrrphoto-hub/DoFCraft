@@ -95,7 +95,7 @@ class CameraLensesUiTest {
             assertNotNull(vm.uiState.presets.cameraEditor)
         }
         text(t("58 mm · f/1.7", "58 мм · f/1,7")).performScrollTo()
-        compose.onAllNodes(hasText(t("Edit lens", "Редактировать объектив")) and hasAnyAncestor(isDialog())).onFirst()
+        compose.onAllNodes(hasText(t("Edit lens", "Редактировать объектив")) and hasAnyAncestor(isDialog())).onLast()
             .performScrollTo().performClick()
         lensField("Focal Length, mm", "Фокусное расстояние, мм", "60")
         text(t("Save", "Сохранить")).performClick()
@@ -156,7 +156,7 @@ class CameraLensesUiTest {
             .performScrollTo().performClick()
         text(t("Delete", "Удалить")).performClick()
         text(t("Save", "Сохранить")).performClick()
-        // Editing the prime upserts it after the zoom, so deleting the first entry removes the zoom.
+        // The zoom's 48 mm minimum keeps it first, regardless of edits or distance-scale units.
         compose.runOnIdle {
             val remaining = vm.uiState.cameraLensKit.lenses.single()
             assertTrue(remaining is Lens.Prime)

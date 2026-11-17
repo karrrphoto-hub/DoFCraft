@@ -113,6 +113,8 @@
     <string name="format_15">Большой формат 8×10 дюймов</string>
     <string name="format_16">Другой формат</string>
     <string name="select_camera">Выбрать камеру</string>
+    <string name="default_camera_profiles">Стандартные профили камер</string>
+    <string name="user_camera_profiles">Пользовательские профили камер</string>
     <string name="search_cameras">Поиск камер</string>
     <string name="delete_camera">Удалить камеру</string>
     <string name="delete_camera_confirmation">Удалить %1$s?</string>
@@ -347,10 +349,10 @@
         <item quantity="other">%d объектива</item>
     </plurals>
     <plurals name="more_lenses">
-        <item quantity="one">Ещё %d объектив</item>
-        <item quantity="few">Ещё %d объектива</item>
-        <item quantity="many">Ещё %d объективов</item>
-        <item quantity="other">Ещё %d объектива</item>
+        <item quantity="one">и ещё %d объектив</item>
+        <item quantity="few">и ещё %d объектива</item>
+        <item quantity="many">и ещё %d объективов</item>
+        <item quantity="other">и ещё %d объектива</item>
     </plurals>
     <string name="diffraction_conventional_help">При съёмке с большим увеличением эта оценка может быть менее точной. В таких условиях объектив может вести себя так, будто диафрагма закрыта сильнее. Приложение использует диафрагменное число, которое вы указали, и не делает поправку на масштаб съёмки.</string>
     <string name="close_focus_title">Возможно, вы снимаете в макродиапазоне</string>

@@ -13,8 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalResources
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +35,14 @@ import java.util.Locale
 internal fun formatPresetNumber(value: Double, locale: Locale): String {
     val text = BigDecimal.valueOf(value).stripTrailingZeros().toPlainString()
     return if (DecimalFormatSymbols.getInstance(locale).decimalSeparator == ',') text.replace('.', ',') else text
+}
+
+/** Display order is independent of save order and distance-scale units. */
+internal fun List<Lens>.sortedByFocalLength(): List<Lens> = sortedBy { lens ->
+    when (lens) {
+        is Lens.Prime -> lens.focalLengthMm
+        is Lens.Zoom -> lens.minFocalLengthMm
+    }
 }
 
 @Composable
@@ -104,7 +114,7 @@ internal fun CameraLensDialogs(
                     Text(stringResource(R.string.lens_kit_help), style = MaterialTheme.typography.bodySmall)
                     if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses))
                     LazyColumn(Modifier.heightIn(max = 400.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(lenses, key = { it.id }) { lens ->
+                        items(lenses.sortedByFocalLength(), key = { it.id }) { lens ->
                             CameraLensDetails(lens, onEdit, onDelete,
                                 state.focusDistance.takeIf { camera.id == state.presets.selectedCameraId })
                         }
@@ -123,19 +133,37 @@ internal fun CameraLensDialogs(
 internal fun CameraLensDescriptions(
     lenses: List<Lens>,
     modifier: Modifier = Modifier,
-    focusDistance: CalculatedDistance? = null,
 ) {
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    val defaultScale = currentDistanceDisplay().unit.lensDistanceUnit()
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses),
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        lenses.forEach { lens ->
-            val summary = lensSummary(lens)
-            Text(if (lens.name.isBlank()) summary
-                else stringResource(R.string.lens_named_summary, lens.name, summary),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            LensScaleInformation(lens, focusDistance)
+        lenses.sortedByFocalLength().take(3).forEach { lens ->
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("•", Modifier.width(8.dp).clearAndSetSemantics {},
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    val summary = lensSummary(lens)
+                    Text(if (lens.name.isBlank()) summary
+                        else stringResource(R.string.lens_named_summary, lens.name, summary),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    lens.distanceScaleUnit?.takeIf { it != defaultScale }?.let { scale ->
+                        Text(stringResource(R.string.lens_distance_scale_value,
+                            stringResource(if (scale == LensDistanceUnit.Feet)
+                                R.string.lens_scale_feet_short else R.string.meters_unit)),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
         }
+        val remainingCount = lenses.size - 3
+        if (remainingCount > 0) Text(pluralStringResource(R.plurals.more_lenses, remainingCount, remainingCount),
+            modifier = Modifier.padding(start = 16.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -151,7 +179,7 @@ internal fun CameraLensesSection(
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(stringResource(R.string.lenses_title), style = MaterialTheme.typography.titleMedium)
         if (lenses.isEmpty()) Text(stringResource(R.string.no_lenses), style = MaterialTheme.typography.bodySmall)
-        lenses.forEach { lens -> CameraLensDetails(lens, onEdit, onDelete, focusDistance) }
+        lenses.sortedByFocalLength().forEach { lens -> CameraLensDetails(lens, onEdit, onDelete, focusDistance) }
         TextButton(onClick = onAdd, enabled = canAdd, modifier = Modifier.heightIn(min = 48.dp)) {
             Text(stringResource(R.string.add_lens))
         }

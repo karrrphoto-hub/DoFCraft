@@ -48,7 +48,7 @@ internal fun LensProfileSelector(state: DofCalculatorUiState, onSelect: (String)
         )
         ExposedDropdownMenu(expanded = expanded && !kit.ignoreLensProfile,
             onDismissRequest = { expanded = false }) {
-            kit.lenses.forEach { lens ->
+            kit.lenses.sortedByFocalLength().forEach { lens ->
                 DropdownMenuItem(text = {
                     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         if (lens.name.isNotBlank()) Text(lens.name)
