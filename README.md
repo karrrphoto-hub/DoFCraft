@@ -74,14 +74,14 @@ Development rules: [AGENTS.md](AGENTS.md).
 
 ## Project status and distribution
 
-This is the private source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
+This is the public source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
 
-Download [DoFCraft 1.0.4](https://github.com/karrrphoto-hub/DoFCraft/releases/tag/v1.0.4) from this repository's Releases. DoFCraft is the single repository for the app's source, documentation and APKs; access is required because it remains private. Existing production-signed installations can update in place. No Google Play listing is claimed.
+Download [DoFCraft 1.0.4](https://github.com/karrrphoto-hub/DoFCraft/releases/tag/v1.0.4) from this repository's Releases. DoFCraft is the single repository for the app's source, documentation and APKs; the repository and release downloads are public. Existing production-signed installations can update in place. No Google Play listing is claimed.
 
 The former DoF-Master distribution history is preserved in `archive/dof-master-distribution`, with its original tags under `distribution-archive/`. Release metadata is archived in [docs/distribution-archive/releases.json](docs/distribution-archive/releases.json).
 
-The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the private `archive/macro-prototype` branch.
+The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the `archive/macro-prototype` branch, visible with the rest of this repository.
 
 ## License
 
-No LICENSE file is included. This private repository is not presented as an open-source project.
+No LICENSE file is included.

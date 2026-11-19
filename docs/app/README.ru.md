@@ -11,7 +11,7 @@
   <p><a href="README.md">English</a> &nbsp;|&nbsp; Русский</p>
 
   <p><a href="https://github.com/karrrphoto-hub/DoFCraft/releases/download/v1.0.4/DoFCraft-1.0.4.apk"><strong>Скачать APK · DoFCraft 1.0.4</strong></a></p>
-  <p>Android 8.0+ &nbsp;·&nbsp; Подписанная Release-сборка &nbsp;·&nbsp; Нужен доступ к репозиторию</p>
+  <p>Android 8.0+ &nbsp;·&nbsp; Подписанная Release-сборка &nbsp;·&nbsp; Без входа в GitHub</p>
   <p><a href="https://github.com/karrrphoto-hub/DoFCraft/releases/tag/v1.0.4">Описание релиза и контрольная сумма SHA-256</a></p>
 </div>
 
@@ -92,7 +92,7 @@ DoFCraft помогает оценить, какая часть сцены бу�
 
 ## О репозитории
 
-DoFCraft — единственный приватный репозиторий приложения: здесь находятся исходники, документация, скриншоты и подписанные APK в Releases. Для просмотра страницы и загрузки APK нужен доступ к репозиторию.
+DoFCraft — единственный публичный репозиторий приложения: здесь находятся исходники, документация, скриншоты и подписанные APK в Releases. Страница и загрузки APK доступны без входа в GitHub.
 
 ---
 

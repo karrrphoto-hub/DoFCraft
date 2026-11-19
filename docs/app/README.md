@@ -11,7 +11,7 @@
   <p>English &nbsp;|&nbsp; <a href="README.ru.md">Русский</a></p>
 
   <p><a href="https://github.com/karrrphoto-hub/DoFCraft/releases/download/v1.0.4/DoFCraft-1.0.4.apk"><strong>Download APK · DoFCraft 1.0.4</strong></a></p>
-  <p>Android 8.0+ &nbsp;·&nbsp; Signed Release APK &nbsp;·&nbsp; Repository access required</p>
+  <p>Android 8.0+ &nbsp;·&nbsp; Signed Release APK &nbsp;·&nbsp; No sign-in required</p>
   <p><a href="https://github.com/karrrphoto-hub/DoFCraft/releases/tag/v1.0.4">Release notes and SHA-256 checksum</a></p>
 </div>
 
@@ -92,7 +92,7 @@ If you previously installed a private Debug build, this Release uses a different
 
 ## About this repository
 
-DoFCraft is the app's single private repository, containing its source code, documentation, screenshots and signed APKs under Releases. Repository access is required to view this page and download APKs.
+DoFCraft is the app's single public repository, containing its source code, documentation, screenshots and signed APKs under Releases. You can view this page and download APKs without signing in.
 
 ---
 

@@ -113,10 +113,10 @@ From version 1.0.1 onward, reuse the permanent Release key for compatible update
 
 ## Repository and distribution
 
-- [DoFCraft](https://github.com/karrrphoto-hub/DoFCraft) is the sole, private repository for source, app documentation and signed APK/checksum releases. Keep its visibility private unless the user explicitly authorizes a change.
+- [DoFCraft](https://github.com/karrrphoto-hub/DoFCraft) is the sole, public repository for source, app documentation and signed APK/checksum releases. The user authorized public visibility on 2026-11-19; signing material, credentials and local configuration remain private and excluded from Git.
 - The former public DoF-Master distribution repository was consolidated on 2026-11-19. Its Git history is retained in `archive/dof-master-distribution`, original tags under `distribution-archive/`, and original release metadata in [distribution-archive/releases.json](distribution-archive/releases.json). Earlier references to public distribution above describe the original publication.
 - Releases 1.0.1–1.0.4 are transferred without rebuilding or re-signing their APKs. Keep the historical asset filenames and SHA-256 checksums.
-- The app page and screenshots are in [app/README.md](app/README.md), with a [Russian version](app/README.ru.md). Download links point to this repository and require repository access.
-- Preserve the private `archive/macro-prototype` branch. Signing paths, alias, Keychain identifiers and permanent certificate are unchanged.
+- The app page and screenshots are in [app/README.md](app/README.md), with a [Russian version](app/README.ru.md). Download links point to this repository and are publicly accessible without signing in.
+- Preserve the `archive/macro-prototype` branch as archived source; it is public with the rest of the repository. Signing paths, alias, Keychain identifiers and permanent certificate are unchanged.
 - Upload only signed production APKs and checksums as new release assets. Never upload an unsigned APK, keystore, password, credentials or local configuration.
 - Default release notes are English; retain Russian app documentation.
