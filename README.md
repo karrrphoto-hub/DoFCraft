@@ -4,7 +4,7 @@
 
 Android · Kotlin · Photography
 
-[Русский](README.ru.md)
+[Русский](README.ru.md) · [App page and screenshots](docs/app/README.md)
 
 DoFCraft is an Android photography tool for calculating depth of field and hyperfocal distance, with flexible sharpness criteria and support for digital, film and custom camera formats. It works entirely offline.
 
@@ -76,7 +76,9 @@ Development rules: [AGENTS.md](AGENTS.md).
 
 This is the private source repository for the existing application, now branded **DoFCraft**. Its previous user-facing name was DoF Master.
 
-Download [DoFCraft 1.0.4](https://github.com/karrrphoto-hub/DoF-Master/releases/tag/v1.0.4) from the separate public distribution repository. Its historical repository name and older APKs are retained. Existing production-signed installations can update in place. No Google Play listing is claimed.
+Download [DoFCraft 1.0.4](https://github.com/karrrphoto-hub/DoFCraft/releases/tag/v1.0.4) from this repository's Releases. DoFCraft is the single repository for the app's source, documentation and APKs; access is required because it remains private. Existing production-signed installations can update in place. No Google Play listing is claimed.
+
+The former DoF-Master distribution history is preserved in `archive/dof-master-distribution`, with its original tags under `distribution-archive/`. Release metadata is archived in [docs/distribution-archive/releases.json](docs/distribution-archive/releases.json).
 
 The rebrand preserves the Android application ID, namespace, packages, signing identity and stored user data. The experimental macro archive remains unchanged in the private `archive/macro-prototype` branch.
 

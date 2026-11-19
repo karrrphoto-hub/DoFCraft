@@ -14,7 +14,7 @@ Keep these project constraints unless the user explicitly changes them:
 - No network features or `INTERNET` permission.
 - No advertising, analytics, payments, account systems, or telemetry.
 - Do not change the existing `applicationId` or `namespace` without an explicit migration request.
-- DoFCraft is the user-facing brand. The private source repository is `karrrphoto-hub/DoFCraft`; keep the separate public `DoF-Master` distribution repository unchanged unless requested. Preserve existing package/theme names, DataStore identifiers and the permanent Release signing identity when rebranding.
+- DoFCraft is the user-facing brand. `karrrphoto-hub/DoFCraft` is the sole repository for source, documentation and signed APK/checksum releases. Keep it private unless the user explicitly authorizes a visibility change. The former DoF-Master distribution repository is consolidated here and must not be recreated. Preserve existing package/theme names, DataStore identifiers and the permanent Release signing identity when rebranding.
 
 ## Architecture
 
@@ -95,7 +95,7 @@ Create packages when the first real class belongs in them; do not add placeholde
 - Before handing off code, run the narrowest relevant tests and `./gradlew :app:assembleDebug`.
 - Prefer an emulator for instrumented tests. Android Studio may clear app data on test devices: before using a physical phone, back up its app data and restore it after the run. Never run instrumented tests on a personal phone without that backup.
 - Never commit `local.properties`, build outputs, Gradle caches, IDE workspace state, credentials, signing material, or generated secrets.
-- Production APKs use the permanent local Release identity documented in `docs/RELEASE_SIGNING.md`; `scripts/sign_release_macos.py` signs the unsigned Gradle output using this app's macOS Keychain item. Never replace the key or use Android Debug signing for public releases. Keep source/history and the Macro archive private; publish only documentation/images and signed APK/checksum assets in the separate public DoF-Master repository.
+- Production APKs use the permanent local Release identity documented in `docs/RELEASE_SIGNING.md`; `scripts/sign_release_macos.py` signs the unsigned Gradle output using this app's macOS Keychain item. Never replace the key or use Android Debug signing for production releases. Keep source/history and the Macro archive private. Publish signed APK/checksum assets in Releases of the same DoFCraft repository; never upload signing material, credentials or local configuration.
 
 ## Change discipline
 

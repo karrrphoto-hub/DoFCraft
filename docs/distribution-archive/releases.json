@@ -1,0 +1,94 @@
+[
+  {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.4/DoFCraft-1.0.4.apk",
+        "digest": "sha256:bae028ffd93097329da3999e965fbdb0edd318c0ef75cfa4bbf033390ca53dd1",
+        "name": "DoFCraft-1.0.4.apk",
+        "size": 1898448
+      },
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.4/DoFCraft-1.0.4.apk.sha256",
+        "digest": "sha256:eaa5d6002321f4ec95b57427dbd5654ef3d9004283a26c2ee8a938fce3fced01",
+        "name": "DoFCraft-1.0.4.apk.sha256",
+        "size": 85
+      }
+    ],
+    "body": "## DoFCraft 1.0.4\n\nCamera and lens lists are easier to browse.\n\n- Separate **User Camera Profiles** and **Default Camera Profiles** sections; user profiles appear first and empty sections stay hidden.\n- Lens lists are sorted by increasing focal length, using the minimum focal length for zooms. Editing a lens or changing its distance scale no longer moves it to the bottom.\n- Compact camera-picker summaries show bullets, up to three lenses and an “and N other lenses” count.\n- The camera picker no longer repeats the current focus distance. Distance-scale units appear only when they differ from the app's unit family.\n- Updated English and Russian labels and documentation.\n\nAndroid 8.0+ · Fully offline · English / Russian.\n\nDownload **DoFCraft-1.0.4.apk** below. The attached SHA-256 file lets you verify the download.\n\nThis APK uses the same permanent production signing certificate as versions 1.0.1–1.0.3. Existing production-signed installations can update in place with their profiles and preferences preserved. Private Debug builds use a different certificate.\n\n---\n\n### По-русски\n\nПрофили камер разделены на стандартные и пользовательские; пользовательские показаны первыми. Объективы отсортированы по фокусному расстоянию независимо от шкалы дистанции и порядка редактирования. В выборе камеры показаны три объектива с буллетами и количество остальных; текущая дистанция убрана, единицы шкалы остаются только при отличии от единиц приложения.\n\nRelease-установки версий 1.0.1–1.0.3 обновляются поверх с сохранением профилей и настроек.\n",
+    "draft": false,
+    "name": "DoFCraft 1.0.4",
+    "prerelease": false,
+    "published_at": "2026-11-17T08:33:44Z",
+    "tag_name": "v1.0.4",
+    "target_commitish": "main"
+  },
+  {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk",
+        "digest": "sha256:9f92845d90c0a8e68226ba633f261aaa3b76f6ba030f527e677850d5e496fa42",
+        "name": "DoFCraft-1.0.3.apk",
+        "size": 1894352
+      },
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.3/DoFCraft-1.0.3.apk.sha256",
+        "digest": "sha256:beb0ce617f1259e3f755b89b4fd2bff2344fbf85483e0345bb58fd85fa0aa182",
+        "name": "DoFCraft-1.0.3.apk.sha256",
+        "size": 85
+      }
+    ],
+    "body": "## DoFCraft 1.0.3\n\nDoF Master is now **DoFCraft — Depth of Field & Hyperfocal**.\n\n- Updated Android launcher name and About screen in English and Russian.\n- Refreshed the project documentation and public download page.\n- The app icon and all calculator features remain unchanged.\n\nThis is an update to the existing app: the Android application ID, production signing certificate and stored data identifiers are unchanged. Existing production-signed installations can update in place without removing the app.\n\nAndroid 8.0+ · Fully offline · English / Russian.\n\n**Installation:** download `DoFCraft-1.0.3.apk`. A SHA-256 checksum is attached. Private Debug builds use a different signature; do not uninstall one if you need its saved profiles.\n\nThe public repository keeps its historical URL. Source code and the experimental Macro archive remain private.\n",
+    "draft": false,
+    "name": "DoFCraft 1.0.3",
+    "prerelease": false,
+    "published_at": "2026-11-16T12:42:26Z",
+    "tag_name": "v1.0.3",
+    "target_commitish": "main"
+  },
+  {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk",
+        "digest": "sha256:1659576af86eaa836d78aab17a7766dd34f8dcf7a50924ddda15f76cbba75b81",
+        "name": "DoF-Master-1.0.2.apk",
+        "size": 1894352
+      },
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.2/DoF-Master-1.0.2.apk.sha256",
+        "digest": "sha256:5505d557dab926e47d3ba94005199675c0bdd80469d085f44e2fb61486b269a9",
+        "name": "DoF-Master-1.0.2.apk.sha256",
+        "size": 87
+      }
+    ],
+    "body": "Choose a lens in Focal Length to use its focal range, aperture presets and distance-scale units.\n\n- Remember lens selection for each camera.\n- Set each lens's distance scale to meters or feet.\n- Ignore Lens Profile bypasses focal, aperture and distance-unit settings together.\n- Show hyperfocal distance in app units with lens-scale units in parentheses, with an explanation in English and Russian.\n- Reset the sharpness criterion to Standard when switching cameras; keep it when editing the current profile.\n- Clarify medium- and large-format measurement units and improve camera-picker spacing.\n\nAndroid 8.0+ · Fully offline · English / Russian.\n\nSigned Release APK using the same production certificate as 1.0.1. Existing production installations can update in place. Private Debug installations use a different signature; do not uninstall them if you need their saved profiles.\n\nValidation: 245 JVM unit tests; targeted English/Russian UI tests; Release lint and build. SHA-256 is provided in the accompanying checksum file.\n",
+    "draft": false,
+    "name": "DoF Master 1.0.2",
+    "prerelease": false,
+    "published_at": "2026-11-16T12:02:22Z",
+    "tag_name": "v1.0.2",
+    "target_commitish": "main"
+  },
+  {
+    "assets": [
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.apk",
+        "digest": "sha256:866ee34841a15839f6566df3e3af46220ab0b545c342a476a46f631054203b74",
+        "name": "DoF-Master-1.0.1.apk",
+        "size": 1886160
+      },
+      {
+        "browser_download_url": "https://github.com/karrrphoto-hub/DoF-Master/releases/download/v1.0.1/DoF-Master-1.0.1.sha256",
+        "digest": "sha256:ed8de1a15aaeae62a23bdec2e30b77f91b78ea096a1ed427d275bf7b3e529904",
+        "name": "DoF-Master-1.0.1.sha256",
+        "size": 87
+      }
+    ],
+    "body": "## DoF Master 1.0.1\n\nThe first public, production-signed Release APK of DoF Master for **Android 8.0 and newer**.\n\nCalculate depth of field and hyperfocal distance with six sharpness criteria, custom camera profiles, lens-based input shortcuts, a visual DOF diagram and independent diffraction / close-focus information.\n\n- Fully offline: no internet permission, advertising, analytics or accounts.\n- English and Russian interfaces, light and dark themes.\n- Debugging disabled; development preview/test activities excluded.\n- Optimized Release build signed with a permanent production key.\n\n### Download and install\n\nDownload **DoF-Master-1.0.1.apk** below, open it on your Android device and allow installation from your browser or file manager if prompted.\n\nIf you previously installed a private Debug build, this Release uses a different signing certificate and cannot update it in place. **Do not uninstall the old copy if you need its saved profiles**: uninstalling can erase app data. Future production releases will reuse the Release signing identity.\n\n### Verify the download\n\nAPK size: **1,886,160 bytes** (about 1.9 MB).\n\nSHA-256:\n\n```text\n866ee34841a15839f6566df3e3af46220ab0b545c342a476a46f631054203b74\n```\n\nThe attached checksum file can be checked with `shasum -a 256 -c DoF-Master-1.0.1.sha256` from the folder containing both downloaded files.\n\nSigning certificate SHA-256:\n\n```text\ncbfdebe0362a27c425046bd6eda81cd1520d7e63c20b5d4c714cbff9b8c5fa97\n```\n\n### Validation\n\n219 JVM tests passed. Release and Debug builds completed successfully, Release lint found no errors, and the signed Release passed an emulator smoke test covering DOF, hyperfocal results and manual-distance confirmation.\n\n[App page](https://github.com/karrrphoto-hub/DoF-Master) · [Русское описание](https://github.com/karrrphoto-hub/DoF-Master/blob/main/README.ru.md)\n",
+    "draft": false,
+    "name": "DoF Master 1.0.1",
+    "prerelease": false,
+    "published_at": "2026-11-13T11:51:40Z",
+    "tag_name": "v1.0.1",
+    "target_commitish": "4f67306067e64bac22c1f5254972d369bd79753d"
+  }
+]
